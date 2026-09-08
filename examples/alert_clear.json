@@ -1,0 +1,18 @@
+{
+  "alert_id": "ALRT-CLEAR-001",
+  "queue": "sanctions_screening",
+  "subject_id": "CUST-2002",
+  "screened_name": "John A. Smith",
+  "date_of_birth": "1990-07-22",
+  "nationality": "US",
+  "address_country": "US",
+  "transaction_ref": "TXN-55501",
+  "hits": [
+    {
+      "list_name": "OFAC SDN",
+      "entry_id": "SDN-88888",
+      "matched_name": "Maria Gonzalez Herrera",
+      "score": 0.41
+    }
+  ]
+}

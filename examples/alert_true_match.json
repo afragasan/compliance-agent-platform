@@ -1,0 +1,18 @@
+{
+  "alert_id": "ALRT-MATCH-001",
+  "queue": "sanctions_screening",
+  "subject_id": "CUST-1001",
+  "screened_name": "Viktor Petrov",
+  "date_of_birth": "1969-04-12",
+  "nationality": "RU",
+  "address_country": "AE",
+  "transaction_ref": "TXN-55502",
+  "hits": [
+    {
+      "list_name": "OFAC SDN",
+      "entry_id": "SDN-12345",
+      "matched_name": "Viktor Petrov",
+      "score": 0.97
+    }
+  ]
+}

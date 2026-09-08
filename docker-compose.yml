@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: cap
+      POSTGRES_PASSWORD: cap
+      POSTGRES_DB: cap
+    ports:
+      - "5432:5432"
+    volumes:
+      - cap_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cap"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  cap_pgdata:

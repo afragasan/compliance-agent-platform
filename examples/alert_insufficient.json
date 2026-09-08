@@ -1,0 +1,15 @@
+{
+  "alert_id": "ALRT-INSUF-001",
+  "queue": "sanctions_screening",
+  "screened_name": "V. Petrov",
+  "nationality": "RU",
+  "transaction_ref": "TXN-55503",
+  "hits": [
+    {
+      "list_name": "OFAC SDN",
+      "entry_id": "SDN-12345",
+      "matched_name": "Viktor Petrov",
+      "score": 0.78
+    }
+  ]
+}
