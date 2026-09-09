@@ -68,12 +68,23 @@ Stage 1 complete.
 
 ## Stage 2 — Postgres integration (dev RDS)
 
-### 2.1 conftest
-- `tests/conftest.py`: `pg_dsn` fixture = `os.environ["DATABASE_URL"]`; `pytest.skip` the
-  whole `integration` marker if unset. A `clean_db` fixture drops `checkpoints*`,
-  `checkpoint_*`, `screening_audit` (or uses a unique run-scoped `thread_id` prefix so
-  reruns don't collide).
-- Register the `integration` marker in `[tool.pytest.ini_options]`.
+### 2.1 conftest — DONE
+
+- `tests/conftest.py`:
+  - `load_dotenv()` at import so `.env` (DATABASE_URL, AWS_REGION) reaches `os.environ`.
+  - `_resolved_dsn()` → `DATABASE_URL`, else `get_settings().resolved_dsn()` **only if**
+    `DB_SECRET_ARN` is set (never the app's localhost default).
+  - `pytest_collection_modifyitems` skips every `@pytest.mark.integration` test when
+    `_resolved_dsn()` is None → `pytest` with no DB still runs the unit suite.
+  - `pg_dsn` (session), `_schema_ready` (session, runs `open_checkpointer` once to create
+    checkpoint + audit schema), `clean_db` (function, `TRUNCATE checkpoints,
+    checkpoint_blobs, checkpoint_writes, screening_audit` — leaves `checkpoint_migrations`;
+    data left in place after the test for inspection), `load_alert` (reads `examples/*.json`).
+- `integration` marker already registered in `[tool.pytest.ini_options]` (Stage 1.1).
+- `tests/test_integration_harness.py` (3 tests): `clean_db` leaves tables empty; audit
+  insert works + `DELETE` blocked by the trigger; `load_alert` loads a fixture.
+- Verified: with `.env` → 37 passed (34 unit + 3 integration); no `.env`/`DATABASE_URL`
+  → 34 passed, 3 skipped.
 
 ### 2.2 Integration tests
 
