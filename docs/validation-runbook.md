@@ -109,18 +109,48 @@ uv run pytest -m integration            # 11 passed
 uv run pytest -q -W error::UserWarning  # 45 passed (34 unit + 11 integration)
 ```
 
-### 2.4 Manual offline E2E (fake model, against RDS)
+### 2.4 Manual offline E2E (fake model, against RDS) — DONE
+
 ```bash
-export CAP_FAKE_MODEL=clear      && uv run cap run --alert examples/alert_clear.json
-export CAP_FAKE_MODEL=true_match && uv run cap run --alert examples/alert_true_match.json   # -> escalated
-uv run cap resume --thread ALRT-MATCH-001 --resolution true_match --analyst-id A123 --rationale "confirmed DOB+nationality"
-export CAP_FAKE_MODEL=insufficient && uv run cap run --alert examples/alert_insufficient.json
+set -a; source .env; set +a
+CAP_FAKE_MODEL=clear             uv run cap run --alert examples/alert_clear.json
+CAP_FAKE_MODEL=true_match        uv run cap run --alert examples/alert_true_match.json   # -> escalated
+# --- separate process (the "crash") ---
+CAP_FAKE_MODEL=true_match        uv run cap resume --thread ALRT-MATCH-001 \
+    --resolution true_match --analyst-id A123 --rationale "confirmed DOB+nationality match"
+CAP_FAKE_MODEL=insufficient_data uv run cap run --alert examples/alert_insufficient.json
 ```
-Between the `run` and `resume` above, kill the shell / open a new one — `resume` must still
-complete from RDS state. Then:
-```bash
-psql "$DATABASE_URL" -c "select step,actor,event,model_id,created_at from screening_audit where alert_id='ALRT-MATCH-001' order by created_at;"
+`CAP_FAKE_MODEL` is a shell export; valid names are in `.env.example`
+(`insufficient_data`, not `insufficient`). No `psql` on this host — inspect with a
+`psycopg` one-liner instead.
+
+Observed (2026-09-09, `cap_test`):
+
+| Alert | Result | audit rows | checkpoints |
+|---|---|---|---|
+| `alert_clear` | `disposed` / `clear` / agent, conf 0.95 | 4 (`intake,enrich,evaluate,dispose`) | 6 |
+| `alert_true_match` (run) | `escalated`; parked with 4 audit rows / 5 checkpoints | — | — |
+| `alert_true_match` (resume, new process) | `disposed` / `true_match` / **analyst** `A123`, `confidence null`, `model_id null` | 7 total | 7 |
+| `alert_insufficient` | `disposed` / `insufficient_data` / agent; rationale is the enrich **rule-overlay** text, not the fake model's → overlay short-circuits the model | 4 | 6 |
+
+`ALRT-MATCH-001` audit trail (note the two timestamps 18s apart = the process boundary):
 ```
+intake    system  node_completed     21:05:49
+enrich    system  node_completed     21:05:49
+evaluate  agent   node_completed     21:05:49   model_id=<bedrock id>
+escalate  agent   interrupt_raised   21:05:49
+escalate  agent   interrupt_raised   21:06:07   <- escalate node re-runs on replay
+escalate  analyst resumed            21:06:07
+dispose   analyst disposition        21:06:07
+```
+Crash-recovery confirmed: process 2 exited fully with the alert parked in Postgres;
+process 3 (fresh) resumed from RDS state and disposed as analyst.
+
+### Stage 2 — COMPLETE
+
+Carried to Stage 4 open items: with `CAP_FAKE_MODEL` set, an **agent** `Disposition`
+still records the real `model_id` from settings (rationale text does say `[CAP_FAKE_MODEL=…]`).
+Harmless (fake never runs in prod) but consider forcing `model_id="fake:<profile>"`.
 
 ---
 
@@ -146,10 +176,15 @@ Confirm in `screening_audit`: the `evaluate` row for the clear/true_match runs h
 1. Resolve the three open questions in `testing-plan.md` (confidence threshold;
    insufficient_data auto-dispose vs escalate; env Bedrock model id) — record the answers
    in `config.py` defaults / a short ADR note if policy changes.
-2. Add `[tool.pytest.ini_options]` (asyncio mode, `integration` marker) and a one-line CI
-   note (`pytest -m "not integration"` on every push; integration on demand).
-3. Commit: `test: Week 1 validation suite + fake-model switch`.
-4. Update the memory note / `README` "Testing" section to point here and record results.
+2. `[tool.pytest.ini_options]` (asyncio mode, `integration` marker) — DONE in Stage 1.1.
+   Still to add: a one-line CI note (`pytest -m "not integration"` on every push;
+   integration on demand against a CI Postgres service).
+3. Commits: done incrementally on `validation/week1-stage1`
+   (`9ff66f9`, `f738425`, `5a52d7c`, `00c07f1`, + Stage 2.4). Open a PR / fast-forward `main`.
+4. Update `README` "Testing" section to point here and record results.
+5. Fake-model `model_id` cosmetics: when `CAP_FAKE_MODEL` is set, force the agent
+   `Disposition.model_id` / audit `model_id` to `fake:<profile>` instead of the real
+   settings value.
 
 ## Known gaps carried to Week 2
 
