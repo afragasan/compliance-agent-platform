@@ -58,7 +58,7 @@ class Disposition(BaseModel):
     created_at: datetime = Field(default_factory=_utcnow)
 
     @model_validator(mode="after")
-    def _check_consistency(self) -> "Disposition":
+    def _check_consistency(self) -> Disposition:
         if self.decided_by is DecidedBy.ANALYST and not self.analyst_id:
             raise ValueError("analyst_id is required when decided_by == 'analyst'")
         if self.decided_by is DecidedBy.AGENT and not self.model_id:

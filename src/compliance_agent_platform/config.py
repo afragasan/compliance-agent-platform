@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     )
     db_secret_arn: str | None = Field(
         default=None,
-        description="If set, a Secrets Manager secret holding {username,password,host,port,dbname}.",
+        description="If set, a Secrets Manager secret with username/password/host/port/dbname.",
     )
 
     # --- AWS / Bedrock ----------------------------------------------------------
