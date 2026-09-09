@@ -48,20 +48,21 @@ uv run ruff check src            # add ruff to the dev group if not present
   (`CAP_FAKE_MODEL=clear` → `clear`; `clear_low` → parked at `escalate`), default path
   returns the real Bedrock client. `ruff check` / `ruff format --check` clean.
 
-### 1.3 Unit tests (`tests/`, no DB, no network)
+### 1.3 Unit tests (`tests/`, no DB, no network) — DONE (34 tests)
 
 | File | Assertions |
 |---|---|
-| `test_disposition_schema.py` | valid `Disposition` for each `DispositionType`; `analyst_id` required when `decided_by=analyst`; `model_id`+`confidence` required for agent `clear`/`true_match`; `true_match` requires ≥1 `matched_entities`; `mode="json"` round-trips. |
-| `test_routing.py` | `make_route_after_evaluate(settings)` table: `true_match`→escalate, `escalate_to_analyst`→escalate, `clear`@0.9→dispose, `clear`@0.5→escalate, `insufficient_data`@0.99→dispose, `insufficient_data`@0.5→escalate. |
-| `test_nodes.py` | `enrich`: name/DOB/nationality features + `insufficient_data` flag with `MockWatchlistProvider`; `evaluate`: rule overlay forces `insufficient_data` when enrichment thin (no LLM call); `dispose`: agent-path vs analyst-path `Disposition` shape. Use a fake `audit_conn` (`execute`/`commit` no-ops). |
-| `test_graph_inmemory.py` | Port yesterday's smoke script: `build_graph(checkpointer=InMemorySaver(), audit_conn=Fake(), deps=default_deps(), model=fake)` — clear→disposed; true_match→interrupt present, `snapshot.next==('escalate',)`; rebuild graph on same `InMemorySaver`, `Command(resume=...)`→`decided_by=analyst`; insufficient→`insufficient_data`. Warnings-as-errors to catch msgpack regressions. |
+| `test_disposition_schema.py` (14) | valid `Disposition` for each agent/analyst `DispositionType`; analyst carries no `confidence`; `analyst_id` required for `decided_by=analyst`; `model_id` required for agent; agent `clear`/`true_match` require `confidence`; `true_match` requires ≥1 `matched_entities`; confidence range + non-empty rationale; `mode="json"` round-trip equality. |
+| `test_routing.py` (8) | `make_route_after_evaluate` table: `true_match`@{0.99,0.10}→escalate, `escalate_to_analyst`→escalate, `clear`@{0.90, threshold}→dispose, `clear`@0.50→escalate, `insufficient_data`@0.99→dispose / @0.50→escalate. |
+| `test_nodes.py` (7) | `enrich`: name/DOB/nationality features + `insufficient_data` flag (DOB missing, hit unresolved) via mock adapters; `evaluate`: rule overlay returns `insufficient_data` **without** invoking the model, else invokes it; `dispose`: agent-path (`model_id`/`prompt_version` set, `analyst_id` None) vs analyst-path (resolution mapped, `confidence` None, falls back to `evaluation.matched_entities`). Fake `audit_conn`. |
+| `test_graph_inmemory.py` (5) | `build_graph(checkpointer=InMemorySaver(), model=fake)` — clear→disposed as agent; true_match→parked at `escalate`, interrupt payload checked; **rebuild graph on same saver + `Command(resume=...)`**→disposed as analyst; missing-DOB→`insufficient_data` via overlay; `get_state_history` yields ≥5 checkpoints. `filterwarnings("error::UserWarning")` guards the checkpoint-serialization regression. |
 
-### 1.4 Gate
+### 1.4 Gate — PASS
 ```bash
-uv run pytest tests/ -m "not integration" -W error::UserWarning
+uv run pytest tests/ -m "not integration" -W error::UserWarning   # 34 passed
+uv run ruff check src tests && uv run ruff format --check src tests
 ```
-All green → Stage 1 complete.
+Stage 1 complete.
 
 ---
 
