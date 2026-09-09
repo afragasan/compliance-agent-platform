@@ -88,15 +88,25 @@ Stage 1 complete.
 
 ### 2.2 Integration tests
 
+### 2.2 Integration tests — DONE (11 tests, dev RDS `cap_test`)
+
+The crash/restart is modelled by the fact that `contract.invoke()` opens **and closes**
+its own `open_checkpointer` context per call — a second `invoke()` for the same
+`thread_id` rebuilds the checkpointer + graph from the DSN and resumes purely from
+Postgres. LLM = `CAP_FAKE_MODEL` stub (no Bedrock).
+
 | File | Assertions |
 |---|---|
-| `test_checkpoint_resume.py` | With `open_checkpointer(settings)` + fake model against RDS: **(a)** clear alert via `invoke` → `status: disposed`, `decided_by: agent`; **(b)** true_match alert → `status: escalated`, `interrupt` payload has the analyst fields; **(c) simulated crash:** exit the `with open_checkpointer` block (drops all connections + graph), open a fresh `open_checkpointer` + `build_graph`, `invoke({"thread_id":..., "resume":{...}})` → `status: disposed`, `decided_by: analyst`, `matched_entities` non-empty; **(d)** `SELECT step,actor,event FROM screening_audit WHERE alert_id=...` shows `intake, enrich, evaluate, escalate(interrupt_raised), escalate(resumed), dispose`; **(e)** `graph.get_state_history(cfg)` yields ≥6 checkpoints ending at `next==()`. |
-| `test_contract.py` | `invoke({"alert": <clear>})` shape `{status, thread_id, disposition}`; `invoke({"alert": <true_match>})` → `{status:"escalated", interrupt}`; `invoke({"thread_id": tid, "resume": {...}})` closes it; a `context` object with `.session_id` overrides `alert.alert_id` as `thread_id`. |
-| `test_audit_immutable.py` | After an `INSERT`, `UPDATE screening_audit SET actor='x'` raises (trigger `screening_audit is append-only`); `DELETE` raises; `INSERT` + `SELECT` still succeed. (Grant-level `INSERT/SELECT`-only is verified in Week 2 when the least-privilege `cap_app` role exists; on dev RDS we connect as the master user, so only the trigger is exercised here.) |
+| `test_checkpoint_resume.py` (2) | **clear**: `invoke` → `disposed`/`agent`, audit trail exactly `intake, enrich, evaluate, dispose`. **true_match**: (b) `invoke` → `escalated`, interrupt payload carries `alert_id`/`agent_recommendation`/`agent_rationale`; (c) fresh `invoke({thread_id, resume})` → `disposed`/`analyst`, `analyst_id`, `confidence is None`, `matched_entities` non-empty (fell back to evaluation's); (d) audit trail — `evaluate` exactly once, `escalate/interrupt_raised` present (may repeat on replay), `escalate/resumed` exactly once, ends `dispose/disposition` by `analyst`, `resumed` before `disposition`; (e) fresh `build_graph` + `get_state_history` ≥6 checkpoints, newest `next == ()` and terminal disposition. |
+| `test_contract.py` (3) | `invoke({"alert": clear})` → exactly `{status, thread_id, disposition}`, `disposed`; `invoke({"alert": true_match})` → exactly `{status, thread_id, interrupt}`, `escalated`, then `invoke({thread_id, resume: clear})` → `disposed`/`analyst`; `context.session_id` overrides `alert_id` as `thread_id` and the checkpoint row is keyed by the session id. |
+| `test_audit_immutable.py` (3) | after a real run: `UPDATE screening_audit` raises `screening_audit is append-only`; `DELETE` raises; `SELECT` works, and a correction row (new insert with `supersedes_id`) succeeds. (Grant-level `INSERT/SELECT`-only is a Week 2 item — the `cap_app` least-privilege role does not exist yet; here we connect as the RDS master user so only the trigger is exercised.) |
 
-### 2.3 Gate
+Plus `test_integration_harness.py` (3) from 2.1.
+
+### 2.3 Gate — PASS
 ```bash
-uv run pytest tests/ -m integration
+uv run pytest -m integration            # 11 passed
+uv run pytest -q -W error::UserWarning  # 45 passed (34 unit + 11 integration)
 ```
 
 ### 2.4 Manual offline E2E (fake model, against RDS)
