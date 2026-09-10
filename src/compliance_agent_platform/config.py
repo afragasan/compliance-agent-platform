@@ -29,7 +29,7 @@ class Settings(BaseSettings):
 
     # --- AWS / Bedrock ----------------------------------------------------------
     aws_region: str = Field(default="us-east-1")
-    bedrock_model_id: str = Field(default="anthropic.claude-sonnet-4-20250514-v1:0")
+    bedrock_model_id: str = Field(default="us.anthropic.claude-sonnet-4-6")
 
     # --- Screening policy -----------------------------------------------------
     prompt_version: str = Field(default="sanctions-eval-v1")

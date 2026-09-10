@@ -154,20 +154,41 @@ Harmless (fake never runs in prod) but consider forcing `model_id="fake:<profile
 
 ---
 
-## Stage 3 — Real Bedrock E2E
+## Stage 3 — Real Bedrock E2E — DONE (2026-09-10)
 
-Prereq: `aws sso login` valid; execution role/user has `bedrock:InvokeModel` for
-`$BEDROCK_MODEL_ID`; model access enabled in the region.
+Model: **`us.anthropic.claude-sonnet-4-6`** (US cross-region inference profile — the
+account has SSO `AdministratorAccess`, account `784137772067`, region `us-east-1`).
+Confirmed `ACTIVE` via `aws bedrock list-inference-profiles`; raw
+`aws bedrock-runtime converse` and the app's `get_chat_model()` / structured-output path
+both smoke-tested before the run. `BEDROCK_MODEL_ID` updated in `.env`, `.env.example`,
+and the `Settings` default in `config.py`.
 
 ```bash
 unset CAP_FAKE_MODEL
-uv run cap run --alert examples/alert_clear.json          # expect: clear,  decided_by agent
-uv run cap run --alert examples/alert_true_match.json     # expect: escalated
+uv run cap run --alert examples/alert_clear.json          # -> clear,  decided_by agent
+uv run cap run --alert examples/alert_true_match.json     # -> escalated
 uv run cap resume --thread ALRT-MATCH-001 --resolution true_match --analyst-id A123 --rationale "..."
-uv run cap run --alert examples/alert_insufficient.json   # expect: insufficient_data (rule overlay, no model call)
+uv run cap run --alert examples/alert_insufficient.json   # -> insufficient_data (rule overlay, no model call)
 ```
-Confirm in `screening_audit`: the `evaluate` row for the clear/true_match runs has
-`llm_request`/`llm_response` populated and the real `model_id`.
+
+Results, all against `cap_test`:
+
+| Alert | Disposition | Notes |
+|---|---|---|
+| `alert_clear` | `clear`, agent, conf 0.98 | model correctly ruled out the weak 0.41-score OFAC hit on name/DOB/nationality; still returned `matched_entities` (candidate it considered, not a match) — allowed by the schema, only `true_match` requires it non-empty |
+| `alert_true_match` | escalated at conf 0.99 → resumed as **analyst** `A123` | real model reasoning cited exact name/DOB/nationality match + the adverse-media hit + high risk rating |
+| `alert_insufficient` | `insufficient_data`, agent | rule-overlay rationale text; **no model call** |
+
+Verified in `screening_audit`:
+```
+evaluate  ALRT-CLEAR-001   model=us.anthropic.claude-sonnet-4-6  llm_request=yes  llm_response=yes
+evaluate  ALRT-MATCH-001   model=us.anthropic.claude-sonnet-4-6  llm_request=yes  llm_response=yes
+evaluate  ALRT-INSUF-001   model=us.anthropic.claude-sonnet-4-6  llm_request=no   llm_response=no   <- overlay, not called
+```
+`ruff` + full `pytest` (45 passed) re-run clean after the `config.py` default change.
+`cap_test` truncated after the run.
+
+### Stage 3 — COMPLETE
 
 ---
 
