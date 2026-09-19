@@ -26,6 +26,13 @@ CREATE TABLE IF NOT EXISTS screening_audit (
 CREATE INDEX IF NOT EXISTS ix_screening_audit_alert ON screening_audit (alert_id, created_at);
 CREATE INDEX IF NOT EXISTS ix_screening_audit_thread ON screening_audit (thread_id, created_at);
 
+-- Hash chain (Week 2): each row commits to the previous row's record_hash, so a
+-- deleted or reordered row breaks the hash of everything after it. Nullable at the
+-- DB level because rows written before this migration have neither value; every row
+-- written through `write_audit` populates both, starting from a fixed genesis hash.
+ALTER TABLE screening_audit ADD COLUMN IF NOT EXISTS prev_hash TEXT;
+ALTER TABLE screening_audit ADD COLUMN IF NOT EXISTS record_hash TEXT;
+
 -- Immutability guard: block UPDATE/DELETE even for roles that hold those privileges.
 CREATE OR REPLACE FUNCTION screening_audit_immutable() RETURNS trigger AS $$
 BEGIN

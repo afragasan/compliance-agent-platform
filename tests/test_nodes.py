@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import date
 
 import pytest
+from fakes import FakeAuditConn
 
 from compliance_agent_platform.adapters.mock import default_deps
 from compliance_agent_platform.config import Settings
@@ -23,19 +24,6 @@ _SETTINGS = Settings(
 )
 
 
-class _FakeConn:
-    """Stand-in for the audit psycopg connection."""
-
-    def __init__(self) -> None:
-        self.calls = 0
-
-    def execute(self, *args, **kwargs):
-        self.calls += 1
-
-    def commit(self):
-        pass
-
-
 class _FakeModel:
     def __init__(self, result: EvaluationResult | None = None) -> None:
         self.result = result
@@ -52,7 +40,7 @@ class _FakeModel:
 def _ctx(model=None):
     return NodeContext(
         deps=default_deps(),
-        audit_conn=_FakeConn(),
+        audit_conn=FakeAuditConn(),
         settings=_SETTINGS,
         model=model or _FakeModel(),
     )

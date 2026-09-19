@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import date
 
 import pytest
+from fakes import FakeAuditConn
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.types import Command
 
@@ -29,14 +30,6 @@ _SETTINGS = Settings(
 )
 
 
-class _FakeConn:
-    def execute(self, *args, **kwargs):
-        pass
-
-    def commit(self):
-        pass
-
-
 class _FakeModel:
     def __init__(self, result: EvaluationResult) -> None:
         self._result = result
@@ -51,7 +44,7 @@ class _FakeModel:
 def _graph(result: EvaluationResult, saver: InMemorySaver | None = None):
     return build_graph(
         checkpointer=saver or InMemorySaver(),
-        audit_conn=_FakeConn(),
+        audit_conn=FakeAuditConn(),
         deps=default_deps(),
         settings=_SETTINGS,
         model=_FakeModel(result),
