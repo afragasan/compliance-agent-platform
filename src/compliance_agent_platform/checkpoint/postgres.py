@@ -8,9 +8,9 @@ analyst resumes it.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
-from typing import Iterator
 
 import psycopg
 from langgraph.checkpoint.postgres import PostgresSaver

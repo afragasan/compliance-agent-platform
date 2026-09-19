@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Callable, Literal
+from collections.abc import Callable
+from typing import Literal
 
 from compliance_agent_platform.config import Settings
 from compliance_agent_platform.schemas.disposition import DispositionType

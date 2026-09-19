@@ -8,7 +8,8 @@ need at entry and dump them back on exit.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from langgraph.types import interrupt
 
@@ -43,14 +44,14 @@ _EVAL_SYSTEM = (
 )
 
 
-def _audit(ctx: "NodeContext", record: AuditRecord) -> None:
+def _audit(ctx: NodeContext, record: AuditRecord) -> None:
     write_audit(ctx.audit_conn, record)
 
 
 # --- intake ------------------------------------------------------------------
 
 
-def make_intake(ctx: "NodeContext") -> Node:
+def make_intake(ctx: NodeContext) -> Node:
     def intake(state: ScreeningState) -> dict:
         alert = ScreeningAlert.model_validate(state["alert"])
         _audit(
@@ -73,7 +74,7 @@ def make_intake(ctx: "NodeContext") -> Node:
 # --- enrich ----------------------------------------------------------------
 
 
-def make_enrich(ctx: "NodeContext") -> Node:
+def make_enrich(ctx: NodeContext) -> Node:
     def enrich(state: ScreeningState) -> dict:
         alert = ScreeningAlert.model_validate(state["alert"])
 
@@ -89,9 +90,7 @@ def make_enrich(ctx: "NodeContext") -> Node:
             entry.nationality_match = _opt_eq(alert.nationality, entry.nationality)
             candidates.append(entry)
 
-        customer = (
-            ctx.deps.customer.fetch_profile(alert.subject_id) if alert.subject_id else None
-        )
+        customer = ctx.deps.customer.fetch_profile(alert.subject_id) if alert.subject_id else None
         media = ctx.deps.adverse_media.search(alert)
 
         missing: list[str] = []
@@ -99,9 +98,7 @@ def make_enrich(ctx: "NodeContext") -> Node:
             missing.append("watchlist_entries_unresolved")
         if alert.date_of_birth is None:
             missing.append("subject_date_of_birth")
-        insufficient = bool(alert.hits) and (
-            not candidates or "subject_date_of_birth" in missing
-        )
+        insufficient = bool(alert.hits) and (not candidates or "subject_date_of_birth" in missing)
 
         bundle = EnrichmentBundle(
             candidates=candidates,
@@ -136,7 +133,7 @@ def make_enrich(ctx: "NodeContext") -> Node:
 # --- evaluate --------------------------------------------------------------
 
 
-def make_evaluate(ctx: "NodeContext") -> Node:
+def make_evaluate(ctx: NodeContext) -> Node:
     structured = ctx.model.with_structured_output(EvaluationResult)
 
     def evaluate(state: ScreeningState) -> dict:
@@ -197,7 +194,7 @@ def make_evaluate(ctx: "NodeContext") -> Node:
 # --- escalate (HITL) ------------------------------------------------------
 
 
-def make_escalate(ctx: "NodeContext") -> Node:
+def make_escalate(ctx: NodeContext) -> Node:
     def escalate(state: ScreeningState) -> dict:
         alert = ScreeningAlert.model_validate(state["alert"])
         evaluation = EvaluationResult.model_validate(state["evaluation"])
@@ -245,7 +242,7 @@ def make_escalate(ctx: "NodeContext") -> Node:
 # --- dispose --------------------------------------------------------------
 
 
-def make_dispose(ctx: "NodeContext") -> Node:
+def make_dispose(ctx: NodeContext) -> Node:
     def dispose(state: ScreeningState) -> dict:
         alert = ScreeningAlert.model_validate(state["alert"])
         evaluation = EvaluationResult.model_validate(state["evaluation"])

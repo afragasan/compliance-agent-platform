@@ -16,7 +16,9 @@ class WatchlistCandidate(BaseModel):
     aliases: list[str] = Field(default_factory=list)
     date_of_birth: date | None = None
     nationality: str | None = None
-    programs: list[str] = Field(default_factory=list, description="Sanctions programs, e.g. 'SDGT'.")
+    programs: list[str] = Field(
+        default_factory=list, description="Sanctions programs, e.g. 'SDGT'."
+    )
     source_url: str | None = None
 
     # Derived match features (0..1), populated by the enrich node.

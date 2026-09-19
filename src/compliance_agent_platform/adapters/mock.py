@@ -73,7 +73,8 @@ class MockAdverseMediaProvider:
         name = alert.screened_name.lower()
         if "petrov" in name:
             return [
-                "2023 investigative report links Viktor Petrov to sanctioned energy trading network.",
+                "2023 investigative report links Viktor Petrov to a sanctioned "
+                "energy trading network.",
             ]
         return []
 

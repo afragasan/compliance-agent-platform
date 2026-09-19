@@ -39,7 +39,9 @@ def _thread_id(payload: dict, context: Any, alert: ScreeningAlert | None) -> str
     ):
         if candidate:
             return str(candidate)
-    raise ValueError("cannot determine thread_id: provide payload['thread_id'], a session id, or an alert")
+    raise ValueError(
+        "cannot determine thread_id: provide payload['thread_id'], a session id, or an alert"
+    )
 
 
 def invoke(payload: dict, context: Any = None) -> dict:
@@ -63,7 +65,9 @@ def invoke(payload: dict, context: Any = None) -> dict:
         elif alert is not None:
             graph.invoke({"alert": alert.model_dump(mode="json")}, config)
         else:
-            raise ValueError("payload must contain 'alert' (new run) or 'resume' (close escalation)")
+            raise ValueError(
+                "payload must contain 'alert' (new run) or 'resume' (close escalation)"
+            )
 
         snapshot = graph.get_state(config)
 
