@@ -68,7 +68,12 @@ Least-privilege: the role/user running `cap audit export` / `cap audit verify` n
 only read/write/list on the bucket's own prefix — never retention-management
 permissions.
 
-```json
+```bash
+ACCOUNT_ID=784137772067
+POLICY_NAME=CapAuditExportPolicy
+
+# 1d. Write the policy document.
+cat > /tmp/cap-audit-export-policy.json <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -76,17 +81,51 @@ permissions.
       "Sid": "CapAuditExport",
       "Effect": "Allow",
       "Action": ["s3:PutObject", "s3:GetObject"],
-      "Resource": "arn:aws:s3:::cap-audit-export-784137772067/screening-audit/*"
+      "Resource": "arn:aws:s3:::${BUCKET}/screening-audit/*"
     },
     {
       "Sid": "CapAuditExportList",
       "Effect": "Allow",
       "Action": "s3:ListBucket",
-      "Resource": "arn:aws:s3:::cap-audit-export-784137772067",
+      "Resource": "arn:aws:s3:::${BUCKET}",
       "Condition": { "StringLike": { "s3:prefix": "screening-audit/*" } }
     }
   ]
 }
+EOF
+
+# 1e. Create it as a reusable customer-managed policy.
+aws iam create-policy \
+  --policy-name "$POLICY_NAME" \
+  --policy-document file:///tmp/cap-audit-export-policy.json
+POLICY_ARN="arn:aws:iam::${ACCOUNT_ID}:policy/${POLICY_NAME}"
+```
+
+**Attach it** to whichever principal actually runs `cap audit export`. There is no
+dedicated execution role for this project yet (the app currently runs under your own
+AWS SSO session, same as RDS/Bedrock in Week 1) — pick one of:
+
+```bash
+# Option A (recommended for this POC): a dedicated IAM user, so the exporter's
+# credentials are separate from your admin SSO session and scoped to exactly
+# this policy — nothing else.
+aws iam create-user --user-name cap-audit-exporter
+aws iam attach-user-policy \
+  --user-name cap-audit-exporter \
+  --policy-arn "$POLICY_ARN"
+aws iam create-access-key --user-name cap-audit-exporter
+# -> store the returned AccessKeyId/SecretAccessKey as a separate AWS CLI profile,
+#    e.g. `aws configure --profile cap-audit-exporter`, and run the exporter with
+#    `AWS_PROFILE=cap-audit-exporter uv run cap audit export`. Long-lived access
+#    keys are a POC convenience, not a production pattern — once this project has
+#    a real execution identity (an AgentCore Runtime execution role, an ECS task
+#    role, etc.), attach the policy to that role instead (Option B) and delete
+#    this user.
+
+# Option B: attach to an existing role you already use to run the app.
+aws iam attach-role-policy \
+  --role-name <YOUR_EXECUTION_ROLE_NAME> \
+  --policy-arn "$POLICY_ARN"
 ```
 
 ### App configuration
