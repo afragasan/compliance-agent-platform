@@ -123,7 +123,7 @@ class ChainVerificationResult(NamedTuple):
     reason: str | None = None
 
 
-def verify_chain(rows: list[dict]) -> ChainVerificationResult:
+def verify_chain(rows: list[dict], start_hash: str = _CHAIN_GENESIS) -> ChainVerificationResult:
     """Recompute the hash chain over ``rows`` and report the first break, if any.
 
     ``rows`` must be plain dicts ordered by ``id`` ascending (e.g. from
@@ -131,8 +131,13 @@ def verify_chain(rows: list[dict]) -> ChainVerificationResult:
     Rows are order-based, not step-based: two rows with an identical
     step/event (e.g. ``escalate``'s known replay-duplicate ``interrupt_raised``
     rows) verify fine as long as each links to the actual previous row.
+
+    ``start_hash`` defaults to the genesis constant, for verifying a chain from
+    its true beginning. Pass the previous batch's chain-head hash to verify a
+    later *sub-range* of the chain (e.g. one S3 export batch resuming from an
+    earlier one) without needing the full history.
     """
-    prev_hash = _CHAIN_GENESIS
+    prev_hash = start_hash
     for row in rows:
         record = AuditRecord.model_validate(row)
         created_at = row["created_at"]
