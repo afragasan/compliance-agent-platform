@@ -260,7 +260,7 @@ def make_dispose(ctx: NodeContext) -> Node:
                 rationale=analyst.rationale,
                 confidence=None,
                 matched_entities=analyst.matched_entities or evaluation.matched_entities,
-                evidence=evaluation.evidence,
+                evidence=evaluation.evidence or _fallback_evidence(state),
                 decided_by=DecidedBy.ANALYST,
                 analyst_id=analyst.analyst_id,
                 prompt_version=ctx.settings.prompt_version,

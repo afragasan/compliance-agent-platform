@@ -41,6 +41,28 @@ def test_escalation_returns_interrupt_shape_then_resume_closes(clean_db, load_al
     assert closed["disposition"]["decided_by"] == "analyst"
 
 
+def test_disposition_with_no_evidence_returns_blocked_shape(clean_db, load_alert, monkeypatch):
+    monkeypatch.setenv("CAP_FAKE_MODEL", "clear")
+    alert = load_alert("alert_clear")
+    alert["hits"] = []  # no watchlist hits -> no candidates -> no fallback evidence either
+
+    result = invoke({"alert": alert})
+
+    assert set(result) == {"status", "thread_id", "violation"}
+    assert result["status"] == "blocked"
+    assert result["violation"]["disposition_type"] == "clear"
+
+    with psycopg.connect(clean_db, autocommit=True) as conn:
+        events = {
+            r[0]
+            for r in conn.execute(
+                "SELECT event FROM screening_audit WHERE alert_id = %s", (alert["alert_id"],)
+            ).fetchall()
+        }
+    assert "disposition" in events  # dispose() itself still ran and audited
+    assert "compliance_blocked" in events  # ...then the middleware rejected it
+
+
 def test_session_id_overrides_alert_id_as_thread(clean_db, load_alert, monkeypatch):
     monkeypatch.setenv("CAP_FAKE_MODEL", "clear")
     context = SimpleNamespace(session_id="SESSION-XYZ")

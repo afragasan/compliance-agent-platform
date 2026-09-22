@@ -14,6 +14,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.types import Command
 
 from compliance_agent_platform.adapters.mock import default_deps
+from compliance_agent_platform.compliance_mw import ComplianceViolationError
 from compliance_agent_platform.config import Settings
 from compliance_agent_platform.graph.builder import build_graph
 from compliance_agent_platform.schemas.alert import ScreeningAlert, WatchlistHit
@@ -152,6 +153,32 @@ def test_insufficient_data_disposes_via_rule_overlay():
     assert snap.next == ()
     assert snap.values["disposition"]["disposition"] == "insufficient_data"
     assert snap.values["disposition"]["decided_by"] == "agent"
+
+
+def test_clear_disposition_with_no_evidence_is_blocked():
+    # No watchlist hits -> enrich finds no candidates but isn't "insufficient"
+    # (no hits to resolve), so evaluate calls the model normally. The model
+    # returns clear with no evidence and the fallback (built from candidates)
+    # is also empty -> citation-mandatory enforcement must block the write.
+    graph = build_graph(
+        checkpointer=InMemorySaver(),
+        audit_conn=FakeAuditConn(),
+        deps=default_deps(),
+        settings=_SETTINGS,
+        model=_FakeModel(
+            EvaluationResult(recommended=DispositionType.CLEAR, confidence=0.9, rationale="clear")
+        ),
+    )
+    cfg = {"configurable": {"thread_id": "no-evidence-1"}}
+    alert = ScreeningAlert(
+        alert_id="no-evidence-1", screened_name="Nobody In Particular", hits=[]
+    ).model_dump(mode="json")
+
+    with pytest.raises(ComplianceViolationError):
+        graph.invoke({"alert": alert}, cfg)
+
+    snap = graph.get_state(cfg)
+    assert "disposition" not in snap.values
 
 
 def test_get_state_history_records_every_transition():
