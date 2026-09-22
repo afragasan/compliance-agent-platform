@@ -150,6 +150,27 @@ project — run it on demand or wire it into a cron job / scheduled task per you
 environment. It is idempotent and resumable: running it with nothing new to export
 is a no-op (`row_count: 0`).
 
+### `cap_test` is shared with the automated test suite
+
+`pytest`'s `clean_db` fixture `TRUNCATE`s `screening_audit` before every integration
+test — so running `pytest` between two `cap audit export` runs against the same
+`DATABASE_URL` deletes rows a manifest already claims were exported. The next
+export correctly refuses rather than silently accepting the gap:
+
+```
+RuntimeError: refusing to export: chain continuity broken at row ...
+```
+
+This is the hash chain doing its job (catching a real deletion), not a bug — but on
+a dev database it's an easy trap to fall into. If you hit it: either (a) don't
+interleave `pytest -m integration` runs with `cap audit export` demos against the
+same database, or (b) if the table has already been truncated since your last
+export, point `AUDIT_EXPORT_PREFIX` at a new value so the exporter starts a fresh
+chain matching the table's current state. The old prefix's objects stay in the
+bucket untouched either way — Object Lock won't let anything delete them before
+`AUDIT_RETENTION_DAYS` expires — they just stop receiving new exports, which is
+itself an honest record that the chain there ended.
+
 ## 2. CloudTrail: log file integrity validation
 
 Pure AWS trail-level setting (`EnableLogFileValidation`) — no application code is
