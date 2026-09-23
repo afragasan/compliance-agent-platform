@@ -27,6 +27,7 @@ from compliance_agent_platform.schemas.evaluation import (
     AnalystResolution,
     EvaluationResult,
 )
+from compliance_agent_platform.schemas.retrieval import RetrievalBundle
 from compliance_agent_platform.schemas.state import ScreeningState
 
 if TYPE_CHECKING:
@@ -40,7 +41,9 @@ _EVAL_SYSTEM = (
     "candidate. Return one of: clear (not a match), true_match (confirmed match), "
     "escalate_to_analyst (plausible match needing human judgement), insufficient_data "
     "(cannot decide with what is provided). Base confidence on name/DOB/nationality "
-    "agreement and adverse media. Cite evidence."
+    "agreement and adverse media. Cite evidence: when a cited fact comes from the "
+    "retrieved regulatory guidance, set that evidence item's document_id/chunk_id to "
+    "the [document_id#chunk_id] tag it was retrieved under."
 )
 
 
@@ -130,6 +133,60 @@ def make_enrich(ctx: NodeContext) -> Node:
     return enrich
 
 
+# --- retrieve ----------------------------------------------------------------
+
+
+def build_retrieval_query(alert: ScreeningAlert, enrichment: EnrichmentBundle) -> str:
+    """Build a retrieval query from structured fields.
+
+    ``ScreeningAlert`` has no narrative field, and the retrieval target is
+    regulatory guidance text, not the screened party - so the query leads with
+    *which regulatory regime is implicated* (list, sanctions program, jurisdiction)
+    rather than *who the person is*. ``adverse_media_summaries`` (the one existing
+    free-text field) is appended last.
+    """
+    parts: list[str] = []
+    parts.extend(sorted({hit.list_name for hit in alert.hits}))
+    parts.extend(sorted({p for c in enrichment.candidates for p in c.programs}))
+    if alert.nationality:
+        parts.append(f"nationality {alert.nationality}")
+    if alert.address_country:
+        parts.append(f"country {alert.address_country}")
+    parts.extend(enrichment.adverse_media_summaries)
+    return " ".join(parts) if parts else alert.screened_name
+
+
+def make_retrieve(ctx: NodeContext) -> Node:
+    def retrieve(state: ScreeningState) -> dict:
+        alert = ScreeningAlert.model_validate(state["alert"])
+        enrichment = EnrichmentBundle.model_validate(state["enrichment"])
+
+        query = build_retrieval_query(alert, enrichment)
+        embedding = ctx.embedder.embed_query(query)
+        chunks = ctx.vector_store.search(embedding, k=ctx.settings.retrieval_top_k)
+        bundle = RetrievalBundle(query=query, chunks=chunks)
+
+        _audit(
+            ctx,
+            AuditRecord(
+                alert_id=alert.alert_id,
+                thread_id=alert.alert_id,
+                step="retrieve",
+                actor="system",
+                event="node_completed",
+                payload_hash=hash_payload(state["enrichment"]),
+                detail={
+                    "query": query,
+                    "chunk_ids": [c.chunk_id for c in bundle.chunks],
+                    "top_score": bundle.chunks[0].score if bundle.chunks else None,
+                },
+            ),
+        )
+        return {"retrieval": bundle.model_dump(mode="json")}
+
+    return retrieve
+
+
 # --- evaluate --------------------------------------------------------------
 
 
@@ -139,6 +196,7 @@ def make_evaluate(ctx: NodeContext) -> Node:
     def evaluate(state: ScreeningState) -> dict:
         alert = ScreeningAlert.model_validate(state["alert"])
         enrichment = EnrichmentBundle.model_validate(state["enrichment"])
+        retrieval = RetrievalBundle.model_validate(state["retrieval"])
 
         # Rule overlay: never ask the model to guess when enrichment is thin.
         if enrichment.insufficient_data:
@@ -165,7 +223,7 @@ def make_evaluate(ctx: NodeContext) -> Node:
             )
             return {"evaluation": result.model_dump(mode="json")}
 
-        prompt = _build_eval_prompt(alert, enrichment)
+        prompt = _build_eval_prompt(alert, enrichment, retrieval)
         messages = [("system", _EVAL_SYSTEM), ("human", prompt)]
         result: EvaluationResult = structured.invoke(messages)
 
@@ -318,10 +376,18 @@ def _name_similarity(a: str, primary: str, aliases: list[str]) -> float:
     return max(SequenceMatcher(None, a.lower(), n.lower()).ratio() for n in names)
 
 
-def _build_eval_prompt(alert: ScreeningAlert, enrichment: EnrichmentBundle) -> str:
+def _build_eval_prompt(
+    alert: ScreeningAlert, enrichment: EnrichmentBundle, retrieval: RetrievalBundle
+) -> str:
+    chunks_text = (
+        "\n\n".join(f"[{c.document_id}#{c.chunk_id}] {c.text}" for c in retrieval.chunks)
+        or "(no regulatory guidance retrieved)"
+    )
     return (
         f"ALERT\n{alert.model_dump_json(indent=2)}\n\n"
         f"ENRICHMENT\n{enrichment.model_dump_json(indent=2)}\n\n"
+        "RETRIEVED REGULATORY GUIDANCE (cite by [document_id#chunk_id] in your evidence)\n"
+        f"{chunks_text}\n\n"
         "Decide the disposition."
     )
 

@@ -86,3 +86,47 @@ class FakeAuditConn:
 
     def commit(self) -> None:
         self.committed += 1
+
+
+class FakeVectorStore:
+    """In-memory :class:`VectorStore` returning pre-canned, clearly-synthetic chunks
+    regardless of the query embedding - enough to exercise the ``retrieve`` node's
+    wiring without any embedding/similarity math."""
+
+    def __init__(self, chunks: list | None = None) -> None:
+        from compliance_agent_platform.schemas.retrieval import RetrievedChunk
+
+        self._chunks = chunks or [
+            RetrievedChunk(
+                chunk_id="TEST-001",
+                document_id="test-corpus",
+                chunk_index=0,
+                text="[TEST CHUNK] placeholder regulatory guidance text.",
+                metadata={
+                    "document_id": "test-corpus",
+                    "title": "Test Topic",
+                    "program": "TEST",
+                    "section": "TEST-REF-1",
+                    "citation": "Test Citation 1",
+                    "compliance_level": "Mandatory",
+                },
+                score=0.99,
+            )
+        ]
+        self.upserted: list[tuple] = []
+
+    def search(self, embedding, k: int = 5):
+        return self._chunks[:k]
+
+    def upsert(self, chunks, embeddings) -> None:
+        self.upserted.append((chunks, embeddings))
+
+
+class FakeEmbedder:
+    """Trivial embedder - the vector's content never matters to ``FakeVectorStore``."""
+
+    def embed_query(self, text: str) -> list[float]:
+        return [0.0]
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        return [[0.0] for _ in texts]

@@ -1,0 +1,349 @@
+[CHUNK_ID]: NACHA-001
+[REGULATORY_REF]: Nacha Operating Rules Article Two (2.1)
+[TOPIC]: ODFI Warranty & Originator Authorization Requirements
+[COMPLIANCE_LEVEL]: Mandatory Rule
+[TEXT]: Originating Depository Financial Institutions (ODFIs) warrant to all Receiving Depository Financial Institutions (RDFIs) and ACH participants that each credit or debit entry originated has been properly authorized by the Receiver in writing or via electronic authentication.
+[CITATION]: Nacha Operating Rules & Guidelines (2024 Edition, Art 2.1)
+
+[CHUNK_ID]: NACHA-002
+[REGULATORY_REF]: Nacha Operating Rules Section 2.3 / Phase 2 Rules
+[TOPIC]: Phase 2 ACH Risk Management & Fraud Monitoring Mandate
+[COMPLIANCE_LEVEL]: Mandatory Rule
+[TEXT]: Under Nacha Phase 2 Risk Management Rules, ODFIs and large Originators must deploy commercially reasonable fraud monitoring systems capable of evaluating ACH debit entries in real-time or near-real-time to detect anomalous transaction patterns prior to network transmission.
+[CITATION]: Nacha Operating Rules Section 2.3.1 - Fraud Monitoring Mandate
+
+[CHUNK_ID]: NACHA-003
+[REGULATORY_REF]: Nacha Operating Rules Section 2.5.17
+[TOPIC]: WEB Entry Account Validation Mandate
+[COMPLIANCE_LEVEL]: Mandatory Rule
+[TEXT]: Originators of Internet-initiated ACH debit entries (WEB debits) must utilize commercially reasonable account validation toolssuch as micro-deposits, pre-notification entries (PRENOTE), or real-time open banking API verificationprior to initiating the first entry.
+[CITATION]: Nacha Operating Rules Section 2.5.17 - Account Validation Rules for WEB Entries
+
+[CHUNK_ID]: NACHA-004
+[REGULATORY_REF]: Nacha Operating Rules Article Three (3.1)
+[TOPIC]: RDFI Rights & Receiver Dispute Timelines
+[COMPLIANCE_LEVEL]: Mandatory Rule
+[TEXT]: RDFIs are obligated to promptly credit Receiver accounts upon settlement of ACH credit entries, and must provide prompt debit reversal mechanisms when a consumer Receiver claims an entry was unauthorized within statutory 60-day windows.
+[CITATION]: Nacha Operating Rules & Guidelines (Art 3.1 & 3.2)
+
+[CHUNK_ID]: NACHA-005
+[REGULATORY_REF]: Nacha Operating Rules Appendix Four
+[TOPIC]: Return Rate Thresholds & Administrative Enforcement
+[COMPLIANCE_LEVEL]: Enforcement Benchmark
+[TEXT]: Nacha enforces three explicit return rate thresholds for Originators: Unauthorized Return Rate <= 0.5%, Administrative Return Rate <= 3.0%, and Overall Return Rate <= 15.0%. Exceeding these benchmarks triggers mandatory Nacha Systemic Risk Investigation.
+[CITATION]: Nacha Operating Rules Appendix Four - Return Rate Threshold Benchmarks
+
+[CHUNK_ID]: NACHA-006
+[REGULATORY_REF]: Nacha Return Code R01 Specification
+[TOPIC]: Return Code R01 - Insufficient Funds
+[COMPLIANCE_LEVEL]: Technical Standard
+[TEXT]: Return Code R01 indicates that available funds in the Receiver's account were insufficient to cover the debit entry. Originators are permitted to re-initiate an R01 returned entry a maximum of two times within 180 days of the original settlement date.
+[CITATION]: Nacha Operating Guidelines - Return Code Specifications (R01)
+
+[CHUNK_ID]: NACHA-007
+[REGULATORY_REF]: Nacha Return Code R02 Specification
+[TOPIC]: Return Code R02 - Account Closed
+[COMPLIANCE_LEVEL]: Technical Standard
+[TEXT]: Return Code R02 indicates that the Receiver's account has been closed by the account holder or financial institution. Re-initiation of an entry returned as R02 is strictly prohibited without explicit new written authorization from the Receiver.
+[CITATION]: Nacha Operating Guidelines - Return Code Specifications (R02)
+
+[CHUNK_ID]: NACHA-008
+[REGULATORY_REF]: Nacha Return Code R03 Specification
+[TOPIC]: Return Code R03 - No Account / Unable to Locate
+[COMPLIANCE_LEVEL]: Technical Standard
+[TEXT]: Return Code R03 signifies that the account number provided does not match any active account structure at the RDFI. Originators must verify routing and account numbers prior to any retry attempt.
+[CITATION]: Nacha Operating Guidelines - Return Code Specifications (R03)
+
+[CHUNK_ID]: NACHA-009
+[REGULATORY_REF]: Nacha Return Code R05 Specification
+[TOPIC]: Return Code R05 - Unauthorized Corporate Debit
+[COMPLIANCE_LEVEL]: Technical Standard
+[TEXT]: Return Code R05 is transmitted when a CCD or CTX debit entry to a corporate account is disputed by the Receiver as unauthorized. R05 returns count directly toward the Originator's 0.5% Unauthorized Return Rate Threshold.
+[CITATION]: Nacha Operating Guidelines - Return Code Specifications (R05)
+
+[CHUNK_ID]: NACHA-010
+[REGULATORY_REF]: Nacha Return Code R07 Specification
+[TOPIC]: Return Code R07 - Authorization Revoked
+[COMPLIANCE_LEVEL]: Technical Standard
+[TEXT]: Return Code R07 is issued when the consumer Receiver previously authorized recurring payments but executed a valid revocation notice to the Originator prior to transaction settlement.
+[CITATION]: Nacha Operating Guidelines - Return Code Specifications (R07)
+
+[CHUNK_ID]: NACHA-011
+[REGULATORY_REF]: Nacha Return Code R08 Specification
+[TOPIC]: Return Code R08 - Payment Stopped
+[COMPLIANCE_LEVEL]: Technical Standard
+[TEXT]: Return Code R08 indicates that the Receiver requested a Stop Payment order at the RDFI. An entry returned under R08 must not be re-initiated unless authorized again by the Receiver.
+[CITATION]: Nacha Operating Guidelines - Return Code Specifications (R08)
+
+[CHUNK_ID]: NACHA-012
+[REGULATORY_REF]: Nacha Return Code R10 Specification
+[TOPIC]: Return Code R10 - Customer Advises Unauthorized
+[COMPLIANCE_LEVEL]: Technical Standard
+[TEXT]: Return Code R10 is the primary consumer dispute code indicating that an entry was unauthorized, executed prior to the authorized date, or initiated for an improper dollar amount. R10 entries must be returned within 60 calendar days.
+[CITATION]: Nacha Operating Guidelines - Return Code Specifications (R10)
+
+[CHUNK_ID]: NACHA-013
+[REGULATORY_REF]: Nacha Return Code R11 Specification
+[TOPIC]: Return Code R11 - To Be Processed as R10 (Improper Entry)
+[COMPLIANCE_LEVEL]: Technical Standard
+[TEXT]: Return Code R11 is utilized when an entry was authorized by the consumer, but an error occurred in the transaction amount or settlement timing. Unlike R10, R11 returns do NOT count toward the 0.5% Unauthorized Return Rate Threshold.
+[CITATION]: Nacha Operating Guidelines - Return Code Specifications (R11)
+
+[CHUNK_ID]: NACHA-014
+[REGULATORY_REF]: Nacha Return Code R29 Specification
+[TOPIC]: Return Code R29 - Corporate Customer Advises Not Authorized
+[COMPLIANCE_LEVEL]: Technical Standard
+[TEXT]: Return Code R29 is transmitted by an RDFI when a corporate customer notifies the RDFI that a corporate debit entry (CCD/CTX) was not authorized. R29 entries must be transmitted within 2 business days of settlement.
+[CITATION]: Nacha Operating Guidelines - Return Code Specifications (R29)
+
+[CHUNK_ID]: NACHA-015
+[REGULATORY_REF]: Nacha Operating Rules Section 3.12
+[TOPIC]: Written Statement of Unauthorized Debit (WSUD) Execution
+[COMPLIANCE_LEVEL]: Mandatory Document
+[TEXT]: Prior to initiating an R10 or R05 return, an RDFI must obtain a completed Written Statement of Unauthorized Debit (WSUD) signed or electronically authenticated by the consumer Receiver under penalty of perjury.
+[CITATION]: Nacha Operating Rules Section 3.12 - WSUD Requirements
+
+[CHUNK_ID]: NACHA-016
+[REGULATORY_REF]: Nacha Operating Rules Section 2.12
+[TOPIC]: Retention of Originator Authorization Records
+[COMPLIANCE_LEVEL]: Mandatory Recordkeeping
+[TEXT]: Originators must retain physical or digital copies of each Receiver's authorization for a minimum of two years following the termination of the authorization contract, and provide proof of authorization to the ODFI upon request within 10 business days.
+[CITATION]: Nacha Operating Rules Section 2.12 - Authorization Record Retention
+
+[CHUNK_ID]: NACHA-017
+[REGULATORY_REF]: Nacha Operating Rules Section 2.14
+[TOPIC]: Re-initiation Rules & Prohibition on Fee Layering
+[COMPLIANCE_LEVEL]: Mandatory Rule
+[TEXT]: An entry returned for insufficient or uncollected funds may be re-initiated no more than two times. Re-initiated entries must maintain identical SEC code, dollar amount, and Receiver name. Separate authorization is required to debit return fees.
+[CITATION]: Nacha Operating Rules Section 2.14 - Re-initiation Guidelines
+
+[CHUNK_ID]: NACHA-018
+[REGULATORY_REF]: Nacha Operating Rules Section 1.4
+[TOPIC]: Data Security Requirements for ACH Participants
+[COMPLIANCE_LEVEL]: Mandatory Security
+[TEXT]: All non-bank Originators, Third-Party Service Providers (TPSPs), and Third-Party Senders (TPSs) processing 6 million or more ACH entries annually must encrypt sensitive banking data (account and routing numbers) at rest and in transit using strong cryptographic standards.
+[CITATION]: Nacha Operating Rules Section 1.4 - Security Requirements
+
+[CHUNK_ID]: NACHA-019
+[REGULATORY_REF]: Nacha Operating Rules Article Two (2.8)
+[TOPIC]: Same Day ACH Limits & Eligible Entry Types
+[COMPLIANCE_LEVEL]: Operational Standard
+[TEXT]: Same Day ACH entries are subject to a maximum per-transaction limit of $1,000,000. All SEC codes are eligible for Same Day processing with the exception of IAT (International ACH Transactions) and automated reversals.
+[CITATION]: Nacha Operating Rules & Guidelines (2024 Edition, Art 2.8)
+
+[CHUNK_ID]: NACHA-020
+[REGULATORY_REF]: Nacha Operating Rules Section 2.10
+[TOPIC]: Pre-notification Entries (PRENOTE) Guidelines
+[COMPLIANCE_LEVEL]: Operational Rule
+[TEXT]: Originators may transmit zero-dollar Pre-notification Entries (PRENOTE) at least 3 business days prior to initiating the first live monetary entry to verify account validity with the RDFI.
+[CITATION]: Nacha Operating Rules Section 2.10 - Prenotification Rules
+
+[CHUNK_ID]: NACHA-021
+[REGULATORY_REF]: Nacha Standard Entry Class (SEC) Code PPD
+[TOPIC]: PPD Entries - Prearranged Payment and Deposit
+[COMPLIANCE_LEVEL]: Operational Standard
+[TEXT]: SEC Code PPD applies to consumer credit and debit entries (e.g., payroll direct deposit, recurring bill payments). PPD debits require written, signed, or digital authorization from the consumer Receiver.
+[CITATION]: Nacha SEC Code Specifications - PPD Entries
+
+[CHUNK_ID]: NACHA-022
+[REGULATORY_REF]: Nacha Standard Entry Class (SEC) Code CCD
+[TOPIC]: CCD Entries - Corporate Credit or Debit
+[COMPLIANCE_LEVEL]: Operational Standard
+[TEXT]: SEC Code CCD facilitates B2B funds transfers between corporate entities. CCD entries may include a single 80-character addenda record for payment detail transmission.
+[CITATION]: Nacha SEC Code Specifications - CCD Entries
+
+[CHUNK_ID]: NACHA-023
+[REGULATORY_REF]: Nacha Standard Entry Class (SEC) Code CTX
+[TOPIC]: CTX Entries - Corporate Trade Exchange
+[COMPLIANCE_LEVEL]: Operational Standard
+[TEXT]: SEC Code CTX supports complex B2B payments accompanied by up to 9,999 ANSI X12 or EDIFACT addenda records containing remittance details.
+[CITATION]: Nacha SEC Code Specifications - CTX Entries
+
+[CHUNK_ID]: NACHA-024
+[REGULATORY_REF]: Nacha Standard Entry Class (SEC) Code TEL
+[TOPIC]: TEL Entries - Telephone-Initiated Debits
+[COMPLIANCE_LEVEL]: Operational Standard
+[TEXT]: SEC Code TEL applies to consumer debits authorized via telephone. Inbound TEL debits require verbal authorization recorded on tape or written confirmation mailed prior to settlement.
+[CITATION]: Nacha SEC Code Specifications - TEL Entries
+
+[CHUNK_ID]: NACHA-025
+[REGULATORY_REF]: Nacha Standard Entry Class (SEC) Code IAT
+[TOPIC]: IAT Entries - International ACH Transactions
+[COMPLIANCE_LEVEL]: Operational Standard
+[TEXT]: SEC Code IAT is mandatory for ACH payments involving financial institutions located outside U.S. jurisdiction. IAT entries require mandatory inclusion of OFAC screening information in addenda records.
+[CITATION]: Nacha SEC Code Specifications - IAT Entries
+
+[CHUNK_ID]: NACHA-026
+[REGULATORY_REF]: Nacha Rules for Micro-Deposits / Micro-Entries
+[TOPIC]: Account Validation via Micro-Entries
+[COMPLIANCE_LEVEL]: Operational Rule
+[TEXT]: Originators utilizing micro-deposits for account validation must transmit two credit entries under $1.00 accompanied by a simultaneous or subsequent offsetting debit entry, utilizing the designated 'ACCTVERIFY' company entry description.
+[CITATION]: Nacha Operating Rules Section 2.5.18 - Micro-Entries Rule
+
+[CHUNK_ID]: NACHA-027
+[REGULATORY_REF]: Nacha Rules for Third-Party Senders (TPS)
+[TOPIC]: Third-Party Sender (TPS) Registration & Audit
+[COMPLIANCE_LEVEL]: Mandatory Registration
+[TEXT]: ODFIs must register all Third-Party Senders (TPSs) with Nacha via the Nacha Risk System, and ensure that each TPS completes an annual Nacha Compliance Audit and maintains risk assessment controls.
+[CITATION]: Nacha Operating Rules Section 2.15 - Third-Party Sender Registration
+
+[CHUNK_ID]: NACHA-028
+[REGULATORY_REF]: Nacha Rules for Reversals & Erroneous Entries
+[TOPIC]: File Reversal Guidelines & 5-Day Window
+[COMPLIANCE_LEVEL]: Mandatory Rule
+[TEXT]: An Originator or ODFI may initiate a reversal file to correct an erroneous payment (e.g., duplicate entry, wrong dollar amount, wrong Receiver). Reversals must be transmitted within 5 banking days of original settlement.
+[CITATION]: Nacha Operating Rules Section 2.9 - Reversal Entries
+
+[CHUNK_ID]: NACHA-029
+[REGULATORY_REF]: Nacha Enforcement Process & Fine Schedule
+[TOPIC]: Systemic Violation Penalties & National System of Fines
+[COMPLIANCE_LEVEL]: Legal Sanctions
+[TEXT]: Nacha's ACH Rules Enforcement Panel imposes monetary fines for willful or systemic rule violations ranging from $1,000 for Class 1 violations up to $500,000 per month for persistent Class 3 non-compliance.
+[CITATION]: Nacha Operating Rules Appendix Ten - National System of Fines
+
+[CHUNK_ID]: NACHA-030
+[REGULATORY_REF]: Nacha Risk Management Framework for Instant Deflection
+[TOPIC]: Real-Time Velocity & Dollar Threshold Rules
+[COMPLIANCE_LEVEL]: Best Practice
+[TEXT]: ACH risk engines must enforce velocity thresholds (e.g., maximum dollar amount per 24 hours, maximum debit attempts per account) to halt automated fraud patterns before generating batches.
+[CITATION]: Nacha Risk Management Guidelines - Originator Velocity Limits
+
+[CHUNK_ID]: NACHA-031
+[REGULATORY_REF]: AI Agent Subgraph Control / ACH Fraud Agent
+[TOPIC]: LangGraph ACH Fraud Agent Triage & Deflection
+[COMPLIANCE_LEVEL]: Technical Constraint
+[TEXT]: The ACH Fraud Agent subgraph must evaluate incoming returns against historical customer baselines. If an Originator's 30-day rolling unauthorized return rate exceeds 0.35%, the agent must flag the account for immediate review before the 0.5% breach threshold.
+[CITATION]: AI Compliance Architecture Guidelines - ACH Fraud Agent Subgraph
+
+[CHUNK_ID]: NACHA-032
+[REGULATORY_REF]: Nacha Guidance on Payroll Direct Deposit Timelines
+[TOPIC]: Mandatory Credit Availability for Payroll
+[COMPLIANCE_LEVEL]: Mandatory Rule
+[TEXT]: RDFIs must make funds from ACH payroll direct deposit credit entries available for withdrawal by the Receiver no later than 9:00 AM local time on the designated settlement date.
+[CITATION]: Nacha Operating Rules Section 3.3 - Credit Availability Requirements
+
+[CHUNK_ID]: NACHA-033
+[REGULATORY_REF]: Nacha Guidelines on Business Email Compromise (BEC)
+[TOPIC]: Fraudulent Credit Entry Recovery Procedures
+[COMPLIANCE_LEVEL]: Advisory Guideline
+[TEXT]: When a business falls victim to Business Email Compromise (BEC) resulting in an unauthorized credit transfer, the ODFI must initiate an immediate credit reversal attempt under SEC Code CCD/CTX and contact the receiving RDFI risk desk.
+[CITATION]: Nacha Executive Bulletin - Business Email Compromise Mitigation
+
+[CHUNK_ID]: NACHA-034
+[REGULATORY_REF]: Nacha Written Authorization Criteria for Consumer Debits
+[TOPIC]: Consumer Authorization Elements for Recurring Debits
+[COMPLIANCE_LEVEL]: Mandatory Legal
+[TEXT]: Written authorizations for recurring ACH debits must be clearly understandable, specify the transaction amount, payment frequency, start date, Receiver name, account details, and provide explicit instructions on how to revoke authorization.
+[CITATION]: Nacha Operating Rules Section 2.3.2 - Consumer Authorization Standards
+
+[CHUNK_ID]: NACHA-035
+[REGULATORY_REF]: Nacha Rules on ACH Audit Trail Requirements
+[TOPIC]: Retention of Transmission Logs & File Hash Headers
+[COMPLIANCE_LEVEL]: Mandatory Recordkeeping
+[TEXT]: ODFIs and Originators must retain complete ACH file transmission logs, control totals, entry detail records, and batch header records for a minimum of six years for state and federal regulatory examination.
+[CITATION]: Nacha Operating Rules Section 1.5 - Audit Trail & File Retention
+
+[CHUNK_ID]: NACHA-036
+[REGULATORY_REF]: Nacha Guidelines for Healthcare Payments (EFT/ERA)
+[TOPIC]: HIPAA Compliance & Healthcare CCD Payments
+[COMPLIANCE_LEVEL]: Operational Rule
+[TEXT]: Healthcare ACH payments initiated under SEC Code CCD must utilize standardized addenda record formatting containing the TRN Reassociation Key to link Electronic Funds Transfer (EFT) payments to Electronic Remittance Advice (ERA).
+[CITATION]: Nacha Operating Rules Section 2.11 - Healthcare EFT/ERA Rules
+
+[CHUNK_ID]: NACHA-037
+[REGULATORY_REF]: Nacha Guidelines for B2B Vendor Payments
+[TOPIC]: Account Validation for Commercial Direct Payments
+[COMPLIANCE_LEVEL]: Recommended
+[TEXT]: Corporate Originators processing high-value commercial supplier disbursements should conduct dual-authorization checks and out-of-band phone confirmation prior to updating vendor bank routing or account records.
+[CITATION]: Nacha Commercial Payment Fraud Prevention Advisory
+
+[CHUNK_ID]: NACHA-038
+[REGULATORY_REF]: Nacha Requirements for Contingency Planning
+[TOPIC]: System Outage Protocols & Backup Settlement Processing
+[COMPLIANCE_LEVEL]: Mandatory Risk
+[TEXT]: ACH participants must maintain documented business continuity plans ensuring that processing outages do not prevent the timely transmission of return entries within mandatory Nacha return deadlines.
+[CITATION]: Nacha Operating Rules Section 1.6 - Contingency Planning Requirements
+
+[CHUNK_ID]: NACHA-039
+[REGULATORY_REF]: Nacha Rules on Dishonored & Contested Returns
+[TOPIC]: Dishonored Return Code R61 & Contested Return R69
+[COMPLIANCE_LEVEL]: Operational Rule
+[TEXT]: An ODFI may transmit a Dishonored Return (R61) if an RDFI failed to return an entry within required timeframes. The RDFI may respond with a Contested Return (R69) if the RDFI asserts compliance with return deadlines.
+[CITATION]: Nacha Operating Rules Section 2.13 - Dishonored & Contested Returns
+
+[CHUNK_ID]: NACHA-040
+[REGULATORY_REF]: Nacha Rules for Government Payment Entries
+[TOPIC]: U.S. Treasury ACH Transactions & Green Book Rules
+[COMPLIANCE_LEVEL]: Federal Regulation
+[TEXT]: ACH entries originated by or routed to the U.S. Federal Government are governed by 31 CFR Part 210 and the Treasury Green Book, superseding standard Nacha rules regarding reclamation and federal benefit payments.
+[CITATION]: 31 CFR Part 210 / U.S. Treasury Green Book
+
+[CHUNK_ID]: NACHA-041
+[REGULATORY_REF]: RAG Evaluation Metric / Nacha Retrieval Benchmark
+[TOPIC]: Nacha Rule Retrieval Precision Benchmark
+[COMPLIANCE_LEVEL]: Evaluation Standard
+[TEXT]: AI agent retrieval components querying Nacha rules for fraud escalation must achieve >=0.92 Precision@k to guarantee that specific return code requirements (e.g., R05 vs R10 distinctions) are retrieved accurately.
+[CITATION]: AI Compliance Architecture Eval Suite - Nacha RAG Benchmark
+
+[CHUNK_ID]: NACHA-042
+[REGULATORY_REF]: Nacha Enforcement Case - High-Risk Originator Termination
+[TOPIC]: Penalty Precedent for Excessive Unauthorized Debits
+[COMPLIANCE_LEVEL]: Case Enforcement
+[TEXT]: ODFIs that fail to terminate high-risk payment aggregators exceeding the 0.5% unauthorized return rate threshold face immediate mandatory loss of ACH origination privileges and financial indemnity assessments.
+[CITATION]: Nacha Enforcement Advisory - ODFI Responsibility for Aggregators
+
+[CHUNK_ID]: NACHA-043
+[REGULATORY_REF]: Nacha Guidance on API-Based ACH Payments
+[TOPIC]: Embedded Finance & SaaS Payment Processing
+[COMPLIANCE_LEVEL]: Technical Standard
+[TEXT]: FinTech platforms acting as Third-Party Senders must pass unique Originator identification parameters (e.g., Company ID) in batch headers to prevent masking high-risk merchant entries under a single master platform account.
+[CITATION]: Nacha Guidelines for Embedded Finance & API Payment Facilitators
+
+[CHUNK_ID]: NACHA-044
+[REGULATORY_REF]: Nacha Rules on Unauthorized Return Fee Limits
+[TOPIC]: Prohibition on Excessive Uncollected Return Fees
+[COMPLIANCE_LEVEL]: Mandatory Standard
+[TEXT]: Return fee debits initiated following an uncollected or unauthorized entry must not exceed local statutory limits or $40.00, and must be authorized separately by the consumer Receiver.
+[CITATION]: Nacha Operating Rules Section 2.14.3 - Return Fee Restrictions
+
+[CHUNK_ID]: NACHA-045
+[REGULATORY_REF]: Nacha Guidance on ACH File Formatting Errors
+[TOPIC]: Return Code R13 - Invalid ACH Routing Number
+[COMPLIANCE_LEVEL]: Technical Standard
+[TEXT]: Return Code R13 is generated when the routing transit number in the entry detail record is invalid or not a participating ACH clearing routing number. File formatting engines must validate routing check digits.
+[CITATION]: Nacha File Structure Validation Manual (R13 Handling)
+
+[CHUNK_ID]: NACHA-046
+[REGULATORY_REF]: Nacha Rules on Death Notification Entries (DNE)
+[TOPIC]: DNE Processing & Benefit Reclamation
+[COMPLIANCE_LEVEL]: Federal & Nacha Rule
+[TEXT]: A Death Notification Entry (DNE) transmitted by a federal paying agency notifies the RDFI of a Receiver's death. RDFIs receiving DNE entries must immediately block future post-death benefit payments.
+[CITATION]: Nacha Operating Rules Section 2.16 - DNE Entry Handling
+
+[CHUNK_ID]: NACHA-047
+[REGULATORY_REF]: Nacha Rules on E-Sign Act Compliance
+[TOPIC]: Electronic Authorization & E-SIGN Alignment
+[COMPLIANCE_LEVEL]: Federal Mandate
+[TEXT]: Electronic authorizations for ACH debits must fully comply with the Electronic Signatures in Global and National Commerce Act (E-SIGN) (15 U.S.C. 7001), including verifiable consumer consent and accessible record delivery.
+[CITATION]: 15 U.S.C. � 7001 / Nacha E-Sign Compliance Framework
+
+[CHUNK_ID]: NACHA-048
+[REGULATORY_REF]: Nacha Rules for Re-presentment (RZ Entries)
+[TOPIC]: Check Truncation & RCK Entries
+[COMPLIANCE_LEVEL]: Technical Standard
+[TEXT]: Re-presented Check Entries (RCK) permit the electronic representment of eligible paper consumer checks returned for insufficient funds. RCK entries are limited to check amounts under $2,500.
+[CITATION]: Nacha SEC Code Specifications - RCK Entries
+
+[CHUNK_ID]: NACHA-049
+[REGULATORY_REF]: Nacha Operating Rules Section 1.7
+[TOPIC]: Financial Indemnity for Erroneous Reversals
+[COMPLIANCE_LEVEL]: Legal Indemnity
+[TEXT]: An Originator or ODFI initiating an improper reversal entry agrees to indemnify the RDFI and Receiver against any loss, damage, or legal liability arising from the execution of the reversal.
+[CITATION]: Nacha Operating Rules Section 1.7 - Reversal Indemnity Provisions
+
+[CHUNK_ID]: NACHA-050
+[REGULATORY_REF]: Nacha Executive Guidance for Risk Officers
+[TOPIC]: Board Oversight of ACH Origination Portfolios
+[COMPLIANCE_LEVEL]: Executive Governance
+[TEXT]: Chief Risk Officers must present quarterly ACH portfolio risk summaries to the Board, including top 10 Originators by volume, return rate compliance trends, and Third-Party Sender audit status.
+[CITATION]: Nacha Executive Risk Governance Framework (Section 4) 

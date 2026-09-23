@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import date
 
 import pytest
-from fakes import FakeAuditConn
+from fakes import FakeAuditConn, FakeEmbedder, FakeVectorStore
 from langgraph.checkpoint.memory import InMemorySaver
 
 from compliance_agent_platform.adapters.mock import default_deps
@@ -31,6 +31,8 @@ def _ctx(audit_conn=None) -> NodeContext:
         audit_conn=audit_conn or FakeAuditConn(),
         settings=_SETTINGS,
         model=None,
+        embedder=FakeEmbedder(),
+        vector_store=FakeVectorStore(),
     )
 
 
@@ -151,6 +153,8 @@ def test_wrap_node_true_escalate_via_full_graph_emits_no_failure_row():
         deps=default_deps(),
         settings=_SETTINGS,
         model=_FakeModel(),
+        embedder=FakeEmbedder(),
+        vector_store=FakeVectorStore(),
     )
     cfg = {"configurable": {"thread_id": "A1"}}
     graph.invoke({"alert": alert}, cfg)

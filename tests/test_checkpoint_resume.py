@@ -3,7 +3,9 @@
 Each ``invoke()`` call opens and closes its own ``open_checkpointer`` context, so calling
 it twice for the same ``thread_id`` *is* the crash/restart scenario: the second call
 rebuilds the checkpointer and graph from the DSN and resumes purely from Postgres state.
-The LLM is the ``CAP_FAKE_MODEL`` stub, so no Bedrock call is made.
+The LLM is the ``CAP_FAKE_MODEL`` stub and embeddings are the ``CAP_FAKE_EMBEDDINGS``
+stub, so no Bedrock call of either kind is made; the local FAISS vector store is used
+with whatever (possibly empty) index is on disk, since retrieval isn't under test here.
 """
 
 from __future__ import annotations
@@ -30,6 +32,7 @@ def _audit_trail(dsn: str, alert_id: str) -> list[tuple[str, str, str]]:
 
 def test_clear_alert_disposes_and_persists(clean_db, load_alert, monkeypatch):
     monkeypatch.setenv("CAP_FAKE_MODEL", "clear")
+    monkeypatch.setenv("CAP_FAKE_EMBEDDINGS", "1")
     result = invoke({"alert": load_alert("alert_clear")})
 
     assert result["status"] == "disposed"
@@ -41,6 +44,7 @@ def test_clear_alert_disposes_and_persists(clean_db, load_alert, monkeypatch):
     assert [(s, e) for s, _, e in trail] == [
         ("intake", "node_completed"),
         ("enrich", "node_completed"),
+        ("retrieve", "node_completed"),
         ("evaluate", "node_completed"),
         ("dispose", "disposition"),
     ]
@@ -48,6 +52,7 @@ def test_clear_alert_disposes_and_persists(clean_db, load_alert, monkeypatch):
 
 def test_true_match_escalates_then_resumes_after_restart(clean_db, load_alert, monkeypatch):
     monkeypatch.setenv("CAP_FAKE_MODEL", "true_match")
+    monkeypatch.setenv("CAP_FAKE_EMBEDDINGS", "1")
     alert = load_alert("alert_true_match")
     tid = alert["alert_id"]
 
@@ -82,9 +87,10 @@ def test_true_match_escalates_then_resumes_after_restart(clean_db, load_alert, m
     # (d) audit trail — evaluate runs once; escalate may re-emit interrupt_raised on replay
     trail = [(s, a, e) for s, a, e in _audit_trail(clean_db, tid)]
     pairs = [(s, e) for s, _, e in trail]
-    assert pairs[:3] == [
+    assert pairs[:4] == [
         ("intake", "node_completed"),
         ("enrich", "node_completed"),
+        ("retrieve", "node_completed"),
         ("evaluate", "node_completed"),
     ]
     assert ("escalate", "interrupt_raised") in pairs
