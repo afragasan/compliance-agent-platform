@@ -9,6 +9,7 @@ from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import END, START, StateGraph
 
 from compliance_agent_platform.adapters.base import ScreeningDeps
+from compliance_agent_platform.compliance_mw import wrap_node
 from compliance_agent_platform.config import Settings, get_settings
 from compliance_agent_platform.graph.nodes import (
     make_dispose,
@@ -48,11 +49,11 @@ def build_graph(
     )
 
     builder = StateGraph(ScreeningState)
-    builder.add_node("intake", make_intake(ctx))
-    builder.add_node("enrich", make_enrich(ctx))
-    builder.add_node("evaluate", make_evaluate(ctx))
-    builder.add_node("escalate", make_escalate(ctx))
-    builder.add_node("dispose", make_dispose(ctx))
+    builder.add_node("intake", wrap_node("intake", make_intake(ctx), ctx))
+    builder.add_node("enrich", wrap_node("enrich", make_enrich(ctx), ctx))
+    builder.add_node("evaluate", wrap_node("evaluate", make_evaluate(ctx), ctx))
+    builder.add_node("escalate", wrap_node("escalate", make_escalate(ctx), ctx))
+    builder.add_node("dispose", wrap_node("dispose", make_dispose(ctx), ctx))
 
     builder.add_edge(START, "intake")
     builder.add_edge("intake", "enrich")

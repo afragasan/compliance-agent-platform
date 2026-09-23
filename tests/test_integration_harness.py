@@ -5,6 +5,8 @@ from __future__ import annotations
 import psycopg
 import pytest
 
+from compliance_agent_platform.audit.log import AuditRecord, write_audit
+
 pytestmark = pytest.mark.integration
 
 
@@ -16,11 +18,25 @@ def test_clean_db_leaves_empty_screening_tables(clean_db: str):
 
 
 def test_audit_schema_and_immutability_trigger_present(clean_db: str):
-    with psycopg.connect(clean_db, autocommit=True) as conn:
-        conn.execute(
-            "INSERT INTO screening_audit (alert_id, thread_id, step, actor, event) "
-            "VALUES ('HARNESS', 'HARNESS', 'intake', 'system', 'node_completed')"
+    # Insert through write_audit (not raw SQL) so the row this test leaves behind
+    # in the shared cap_test database is properly hash-chained like every other
+    # row `cap` writes - an unchained row here previously tripped up
+    # `cap audit export`/`verify` on a freshly test-truncated table (it isn't
+    # tampering, just a row that predates the chain, but export correctly
+    # refuses to treat it as a valid link either way).
+    with psycopg.connect(clean_db, autocommit=False) as write_conn:
+        write_audit(
+            write_conn,
+            AuditRecord(
+                alert_id="HARNESS",
+                thread_id="HARNESS",
+                step="intake",
+                actor="system",
+                event="node_completed",
+            ),
         )
+
+    with psycopg.connect(clean_db, autocommit=True) as conn:
         with pytest.raises(psycopg.errors.RaiseException, match="append-only"):
             conn.execute("DELETE FROM screening_audit WHERE alert_id = 'HARNESS'")
 

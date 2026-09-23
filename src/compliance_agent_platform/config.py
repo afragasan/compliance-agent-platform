@@ -36,6 +36,22 @@ class Settings(BaseSettings):
     clear_confidence_threshold: float = Field(default=0.85)
     queue: str = Field(default="sanctions_screening")
 
+    # --- Audit export (S3 Object Lock) -----------------------------------------
+    audit_export_bucket: str | None = Field(
+        default=None,
+        description="S3 bucket `cap audit export` writes hash-chained audit batches to.",
+    )
+    audit_export_prefix: str = Field(default="screening-audit")
+    audit_retention_days: int = Field(
+        default=30,
+        description=(
+            "Object Lock COMPLIANCE-mode default retention, in days, for the export "
+            "bucket. 30 (1 month) here is a POC default — production deployments should "
+            "set this per the applicable regulatory retention requirement (e.g. AML "
+            "recordkeeping rules commonly call for multi-year retention)."
+        ),
+    )
+
     def resolved_dsn(self) -> str:
         """Return the effective libpq DSN, pulling creds from Secrets Manager if configured."""
         if not self.db_secret_arn:

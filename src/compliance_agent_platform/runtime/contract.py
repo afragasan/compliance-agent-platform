@@ -15,6 +15,10 @@ context:
 response:
     {"status": "disposed",  "thread_id": ..., "disposition": {<Disposition>}}
     {"status": "escalated", "thread_id": ..., "interrupt": {<payload for the analyst>}}
+    {"status": "blocked",   "thread_id": ..., "violation": {"disposition_type", "reason"}}
+
+"blocked" means compliance middleware rejected the graph's disposition (e.g. no
+citation evidence) before it became state-of-record; see ``compliance_mw``.
 """
 
 from __future__ import annotations
@@ -25,6 +29,7 @@ from langgraph.types import Command
 
 from compliance_agent_platform.adapters.mock import default_deps
 from compliance_agent_platform.checkpoint.postgres import open_checkpointer
+from compliance_agent_platform.compliance_mw import ComplianceViolationError
 from compliance_agent_platform.config import get_settings
 from compliance_agent_platform.graph.builder import build_graph
 from compliance_agent_platform.schemas.alert import ScreeningAlert
@@ -51,25 +56,32 @@ def invoke(payload: dict, context: Any = None) -> dict:
     thread_id = _thread_id(payload, context, alert)
     config = {"configurable": {"thread_id": thread_id}}
 
-    with open_checkpointer(settings) as persistence:
-        graph = build_graph(
-            checkpointer=persistence.checkpointer,
-            audit_conn=persistence.audit_conn,
-            deps=default_deps(),
-            settings=settings,
-        )
-
-        if resume is not None:
-            decision = AnalystDecision.model_validate(resume)
-            graph.invoke(Command(resume=decision.model_dump(mode="json")), config)
-        elif alert is not None:
-            graph.invoke({"alert": alert.model_dump(mode="json")}, config)
-        else:
-            raise ValueError(
-                "payload must contain 'alert' (new run) or 'resume' (close escalation)"
+    try:
+        with open_checkpointer(settings) as persistence:
+            graph = build_graph(
+                checkpointer=persistence.checkpointer,
+                audit_conn=persistence.audit_conn,
+                deps=default_deps(),
+                settings=settings,
             )
 
-        snapshot = graph.get_state(config)
+            if resume is not None:
+                decision = AnalystDecision.model_validate(resume)
+                graph.invoke(Command(resume=decision.model_dump(mode="json")), config)
+            elif alert is not None:
+                graph.invoke({"alert": alert.model_dump(mode="json")}, config)
+            else:
+                raise ValueError(
+                    "payload must contain 'alert' (new run) or 'resume' (close escalation)"
+                )
+
+            snapshot = graph.get_state(config)
+    except ComplianceViolationError as exc:
+        return {
+            "status": "blocked",
+            "thread_id": thread_id,
+            "violation": {"disposition_type": exc.disposition_type, "reason": exc.reason},
+        }
 
     if snapshot.interrupts:
         return {
