@@ -33,6 +33,12 @@ class EvidenceItem(BaseModel):
     source: str = Field(description="e.g. 'OFAC SDN', 'customer KYC', 'adverse media'.")
     detail: str
     reference: str | None = None
+    document_id: str | None = Field(
+        default=None, description="Regulatory-corpus document this cites, if any."
+    )
+    chunk_id: str | None = Field(
+        default=None, description="Specific retrieved chunk this cites, if any."
+    )
 
 
 def _utcnow() -> datetime:

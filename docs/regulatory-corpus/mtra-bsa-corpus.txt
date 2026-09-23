@@ -1,0 +1,349 @@
+[CHUNK_ID]: MTRA-001
+[REGULATORY_REF]: 31 CFR � 1022.310 / BSA Regulations
+[TOPIC]: Currency Transaction Report (CTR) Filing Threshold
+[COMPLIANCE_LEVEL]: Mandatory Statute
+[TEXT]: Money Services Businesses (MSBs) must file a Currency Transaction Report (CTR) for each deposit, withdrawal, exchange of currency, or other payment or transfer involving physical currency of more than $10,000 executed by, through, or to the MSB in a single business day.
+[CITATION]: 31 CFR � 1022.310 - Reports of Transactions in Currency
+
+[CHUNK_ID]: MTRA-002
+[REGULATORY_REF]: 31 CFR � 1022.311 / Anti-Structuring Statute
+[TOPIC]: Aggregation & Anti-Structuring Enforcement
+[COMPLIANCE_LEVEL]: Mandatory Statute
+[TEXT]: Multiple physical currency transactions conducted by or on behalf of the same person during a single business day must be aggregated. Intentionally breaking up transactions into amounts below $10,000 to evade CTR reporting constitutes illegal structuring under 31 U.S.C. 5324.
+[CITATION]: 31 U.S.C. � 5324 / 31 CFR � 1022.311 - Aggregation Rules
+
+[CHUNK_ID]: MTRA-003
+[REGULATORY_REF]: 31 CFR � 1022.320
+[TOPIC]: Suspicious Activity Report (SAR) Filing Threshold ($2,000)
+[COMPLIANCE_LEVEL]: Mandatory Statute
+[TEXT]: An MSB must file a Suspicious Activity Report (SAR-MSB) for any transaction conducted or attempted by, at, or through the MSB involving or aggregating $2,000 or more ($5,000 or more for issuers/sellers of money orders) when the MSB knows, suspects, or has reason to suspect illegal activity.
+[CITATION]: 31 CFR � 1022.320 - Reports by Money Services Businesses of Suspicious Transactions
+
+[CHUNK_ID]: MTRA-004
+[REGULATORY_REF]: 31 CFR � 1022.320(b)
+[TOPIC]: SAR Filing Deadline (30-Day Window)
+[COMPLIANCE_LEVEL]: Mandatory Statute
+[TEXT]: An MSB must file a SAR with FinCEN no later than 30 calendar days after the date of initial detection of facts that may constitute a basis for filing. If no suspect is identified on the date of detection, the filing deadline extends to 60 calendar days.
+[CITATION]: 31 CFR � 1022.320(b)(3) - SAR Filing Timelines
+
+[CHUNK_ID]: MTRA-005
+[REGULATORY_REF]: 31 CFR � 1022.320(e)
+[TOPIC]: Strict Confidentiality of SAR Filings & Non-Disclosure
+[COMPLIANCE_LEVEL]: Criminal Sanction
+[TEXT]: SAR filings and information revealing the existence of a SAR are strictly confidential. MSBs, directors, officers, and employees are legally prohibited from disclosing a SAR or its contents to any person involved in the transaction, subject to federal criminal prosecution.
+[CITATION]: 31 U.S.C. � 5318(g)(2) / 31 CFR � 1022.320(e)
+
+[CHUNK_ID]: MTRA-006
+[REGULATORY_REF]: FinCEN Travel Rule (31 CFR � 1010.410(f))
+[TOPIC]: Funds Transmittal Recordkeeping & Travel Rule Threshold ($3,000)
+[COMPLIANCE_LEVEL]: Mandatory Statute
+[TEXT]: For transmittals of funds of $3,000 or more, the transmittor's financial institution must retain specified record information (sender name, address, account number, execution date, receiver details) and transmit this information to the receiving institution.
+[CITATION]: 31 CFR � 1010.410(f) - Recordkeeping for Transmittals of Funds
+
+[CHUNK_ID]: MTRA-007
+[REGULATORY_REF]: 31 CFR � 1022.210
+[TOPIC]: MSB Anti-Money Laundering (AML) Compliance Program Mandate
+[COMPLIANCE_LEVEL]: Mandatory Regulation
+[TEXT]: Each MSB must develop, implement, and maintain a written Anti-Money Laundering (AML) compliance program reasonably designed to prevent the MSB from being used to facilitate money laundering and terrorist financing.
+[CITATION]: 31 CFR � 1022.210 - Anti-Money Laundering Programs for MSBs
+
+[CHUNK_ID]: MTRA-008
+[REGULATORY_REF]: FinCEN Monetary Instrument Rule (31 CFR � 1010.415)
+[TOPIC]: Recordkeeping for Cash Purchases of Monetary Instruments ($3,000-$10,000)
+[COMPLIANCE_LEVEL]: Mandatory Rule
+[TEXT]: Financial institutions must verify the identity of purchasers and maintain a record of all physical currency purchases of monetary instruments (money orders, cashier's checks, traveler's checks) in amounts between $3,000 and $10,000 inclusive.
+[CITATION]: 31 CFR � 1010.415 - Purchases of Bank Checks & Money Orders
+
+[CHUNK_ID]: MTRA-009
+[REGULATORY_REF]: MTRA Model Money Transmission Act Section 102
+[TOPIC]: Money Transmission Definition & Regulatory Scope
+[COMPLIANCE_LEVEL]: Model Legislation
+[TEXT]: Money transmission is defined as receiving money or monetary value for transmission to a location within or outside the United States by any means, including wire, facsimile, electronic transfer, or payment instrument.
+[CITATION]: MTRA Model Money Transmission Act � 102 - Definitions
+
+[CHUNK_ID]: MTRA-010
+[REGULATORY_REF]: MTRA Examination Manual Section III
+[TOPIC]: Permissible Investments & Customer Funds Safety
+[COMPLIANCE_LEVEL]: Mandatory Licensing
+[TEXT]: Licensed money transmitters must maintain permissible investments (e.g., cash, bank deposits, U.S. Treasury bills, high-grade sovereign debt) having an aggregate market value of not less than the total outstanding payment obligations of the licensee.
+[CITATION]: MTRA State Examination Manual - Permissible Investments Mandate
+
+[CHUNK_ID]: MTRA-011
+[REGULATORY_REF]: FinCEN Guidance FIN-2019-G001
+[TOPIC]: Convertible Virtual Currency (CVC) Exchangers as MSBs
+[COMPLIANCE_LEVEL]: Federal Regulatory Guidance
+[TEXT]: Persons accepting and transmitting convertible virtual currency (CVC) or acting as administrators/exchangers of decentralized digital assets qualify as Money Transmitters under BSA regulations, requiring FinCEN registration and compliance with 31 CFR Part 1022.
+[CITATION]: FinCEN Guidance on Application of Regulations to CVC Administrators & Exchangers
+
+[CHUNK_ID]: MTRA-012
+[REGULATORY_REF]: MTRA Examination Manual Section IV
+[TOPIC]: Independent Testing Standards for State Money Transmitters
+[COMPLIANCE_LEVEL]: Mandatory Audit
+[TEXT]: State money transmission licensees must undergo an independent AML compliance program audit at least annually. The audit scope must evaluate transaction monitoring thresholds, agent oversight, SAR filing accuracy, and board reporting.
+[CITATION]: MTRA State Examination Manual - Independent Audit Standards
+
+[CHUNK_ID]: MTRA-013
+[REGULATORY_REF]: FinCEN Guidance FIN-2016-G003
+[TOPIC]: Prepaid Access Regulations & MSB Obligations
+[COMPLIANCE_LEVEL]: Mandatory Regulation
+[TEXT]: Providers and sellers of prepaid access (e.g., stored value cards, digital wallets) must implement customer identification procedures and maintain records for open-loop prepaid access devices exceeding $10,000 limit capacity.
+[CITATION]: 31 CFR � 1022.380 / FinCEN Prepaid Access Rules
+
+[CHUNK_ID]: MTRA-014
+[REGULATORY_REF]: 31 CFR � 1022.380
+[TOPIC]: FinCEN Registration Requirements for MSBs
+[COMPLIANCE_LEVEL]: Mandatory Registration
+[TEXT]: MSBs must formally register with FinCEN within 180 days after establishment using FinCEN Form 107 (RMSB), and re-register every two years. Failure to register constitutes a federal felony under 18 U.S.C. 1960.
+[CITATION]: 31 CFR � 1022.380 / 18 U.S.C. � 1960
+
+[CHUNK_ID]: MTRA-015
+[REGULATORY_REF]: FinCEN Customer Due Diligence (CDD) Rule
+[TOPIC]: Beneficial Ownership Identification Threshold (25%)
+[COMPLIANCE_LEVEL]: Mandatory Statute
+[TEXT]: MSBs and covered financial institutions must identify and verify the identity of ultimate beneficial owners who directly or indirectly own 25% or more of the equity interests of a legal entity customer.
+[CITATION]: 31 CFR � 1010.230 - Beneficial Ownership Requirements for Legal Entity Customers
+
+[CHUNK_ID]: MTRA-016
+[REGULATORY_REF]: MTRA Model Money Transmission Act Section 204
+[TOPIC]: Surety Bond & Financial Net Worth Requirements
+[COMPLIANCE_LEVEL]: State Licensing Standard
+[TEXT]: License applicants must maintain a tangible net worth exceeding state-mandated minimums ($100,000 to $1,000,000 based on transaction volume) and post a corporate surety bond to protect customer funds against insolvency.
+[CITATION]: MTRA Model Money Transmission Act � 204 - Financial Condition Standards
+
+[CHUNK_ID]: MTRA-017
+[REGULATORY_REF]: 31 CFR � 1010.430
+[TOPIC]: 5-Year Record Retention Rule for BSA Files
+[COMPLIANCE_LEVEL]: Mandatory Recordkeeping
+[TEXT]: Records required to be maintained under BSA regulationsincluding CTRs, SARs, transmittal logs, monetary instrument records, and customer verification documentsmust be retained for a minimum of 5 years.
+[CITATION]: 31 CFR � 1010.430 - Nature and Retention of Records
+
+[CHUNK_ID]: MTRA-018
+[REGULATORY_REF]: MTRA Examination Manual Section V
+[TOPIC]: Authorized Delegate / Agent Oversight & Due Diligence
+[COMPLIANCE_LEVEL]: Regulatory Requirement
+[TEXT]: Money transmission licensees are strictly liable for the acts of their authorized delegates (agents). Licensees must conduct initial due diligence, maintain an updated delegate registry, and conduct onsite/remote AML audits.
+[CITATION]: MTRA State Examination Manual - Authorized Delegate Governance
+
+[CHUNK_ID]: MTRA-019
+[REGULATORY_REF]: FinCEN Advisory FIN-2021-A001
+[TOPIC]: Environmental Crime & Wildlife Trafficking Financial Signals
+[COMPLIANCE_LEVEL]: Advisory Guidance
+[TEXT]: FinCEN urges MSBs and payment facilitators to monitor suspicious funds transfers directed toward shell companies operating in jurisdictions known for illegal wildlife trafficking and timber smuggling.
+[CITATION]: FinCEN Advisory on Illicit Financial Flows from Environmental Crime
+
+[CHUNK_ID]: MTRA-020
+[REGULATORY_REF]: MTRA Model Money Transmission Act Section 301
+[TOPIC]: Change of Control Regulations for State Money Licensees
+[COMPLIANCE_LEVEL]: Mandatory Licensing
+[TEXT]: Acquisition of 10% or more of the voting security or equity interest in a state money transmitter licensee constitutes a Change of Control requiring prior written approval from state financial regulators.
+[CITATION]: MTRA Model Money Transmission Act � 301 - Acquisition of Control
+
+[CHUNK_ID]: MTRA-021
+[REGULATORY_REF]: FinCEN Educational Bulletin - SAR Narrative Structuring
+[TOPIC]: SAR Narrative Essential Elements (Who, What, When, Where, Why)
+[COMPLIANCE_LEVEL]: Best Practice / Filing Standard
+[TEXT]: SAR narratives must systematically cover the five core questions: Who was involved? What instruments were used? When did the activity occur? Where did it take place? Why is the transaction suspicious?
+[CITATION]: FinCEN SAR Narrative Guidance Bulletin (2021)
+
+[CHUNK_ID]: MTRA-022
+[REGULATORY_REF]: 31 U.S.C. � 5318(g)
+[TOPIC]: Safe Harbor Protections for SAR Filers
+[COMPLIANCE_LEVEL]: Statutory Legal Immunity
+[TEXT]: Financial institutions and their officers, directors, and employees who disclose suspicious transactions under BSA statutes enjoy full federal civil immunity from liability under state and federal law.
+[CITATION]: 31 U.S.C. � 5318(g)(3) - Safe Harbor Protection for Filers
+
+[CHUNK_ID]: MTRA-023
+[REGULATORY_REF]: FinCEN Guidance on Ransomware & CVC Remittances
+[TOPIC]: Virtual Currency Ransomware Red Flags
+[COMPLIANCE_LEVEL]: Advisory Guidance
+[TEXT]: Red flags indicating ransomware-related virtual currency transactions include sudden transfers of large CVC values to unhosted wallets, followed immediately by rapid mixing or tumblers.
+[CITATION]: FinCEN Advisory FIN-2021-A004 on Ransomware Trends
+
+[CHUNK_ID]: MTRA-024
+[REGULATORY_REF]: FATF Recommendation 16 / Virtual Asset Travel Rule
+[TOPIC]: FATF Travel Rule for Virtual Asset Service Providers (VASPs)
+[COMPLIANCE_LEVEL]: International Standard
+[TEXT]: VASPs must obtain, hold, and submit originator and beneficiary information immediately and securely when executing virtual asset transfers equal to or exceeding $1,000 USD/EUR.
+[CITATION]: FATF Guidance for a Risk-Based Approach to Virtual Assets & VASPs (Recommendation 16)
+
+[CHUNK_ID]: MTRA-025
+[REGULATORY_REF]: 18 U.S.C. � 1960
+[TOPIC]: Unlicensed Money Transmit Businesses Criminal Liability
+[COMPLIANCE_LEVEL]: Criminal Statute
+[TEXT]: Operating a money transmitting business without a required state license or without registering with FinCEN is a federal crime punishable by fines and up to 5 years imprisonment.
+[CITATION]: 18 U.S.C. � 1960 - Prohibition of Unlicensed Money Transmitting Businesses
+
+[CHUNK_ID]: MTRA-026
+[REGULATORY_REF]: MTRA State Examination Manual Section VI
+[TOPIC]: Cybersecurity Expectations for Financial Technology Licensees
+[COMPLIANCE_LEVEL]: State Standard
+[TEXT]: State money transmission regulators require licensees to implement multi-factor authentication, data encryption at rest/transit, incident response plans, and annual penetration testing.
+[CITATION]: MTRA State Examination Manual - Information Security Standards
+
+[CHUNK_ID]: MTRA-027
+[REGULATORY_REF]: FinCEN Advisory FIN-2020-A002
+[TOPIC]: Cyber-Enabled Financial Crime & Account Takeover
+[COMPLIANCE_LEVEL]: Advisory Guidance
+[TEXT]: Financial red flags for cyber-enabled account takeover include rapid changes to customer contact details followed immediately by wire transfer requests to high-risk offshore accounts.
+[CITATION]: FinCEN Advisory on Cyber-Enabled Crime & Fraud Schemes
+
+[CHUNK_ID]: MTRA-028
+[REGULATORY_REF]: 31 CFR � 1010.350
+[TOPIC]: Foreign Bank and Financial Accounts (FBAR) Reporting
+[COMPLIANCE_LEVEL]: Mandatory Statute
+[TEXT]: U.S. persons holding a financial interest in or signature authority over foreign financial accounts exceeding $10,000 in aggregate value at any time during the calendar year must file an annual FBAR (FinCEN Form 114).
+[CITATION]: 31 CFR � 1010.350 / 31 U.S.C. � 5314
+
+[CHUNK_ID]: MTRA-029
+[REGULATORY_REF]: FinCEN Advisory FIN-2019-A003
+[TOPIC]: Human Smuggling & Human Trafficking Red Flags
+[COMPLIANCE_LEVEL]: Advisory Guidance
+[TEXT]: Indicators of human smuggling include multiple cash deposits under $10,000 in disparate geographic branch locations deposited into a single account, followed immediately by wire transfers out.
+[CITATION]: FinCEN Advisory on Financial Red Flags of Human Smuggling & Trafficking
+
+[CHUNK_ID]: MTRA-030
+[REGULATORY_REF]: MTRA Model Money Transmission Act Section 402
+[TOPIC]: Examination Authority & Joint Multistate Exams
+[COMPLIANCE_LEVEL]: Regulatory Framework
+[TEXT]: State banking commissioners hold broad statutory authority to examine licensed money transmitters at any time and coordinate joint multistate examinations via the NMLS (Nationwide Multistate Licensing System).
+[CITATION]: MTRA Model Money Transmission Act � 402 - Examinations
+
+[CHUNK_ID]: MTRA-031
+[REGULATORY_REF]: AI Agent Subgraph Control / AML Queue Agent
+[TOPIC]: LangGraph AML Agent SAR Draft Generation
+[COMPLIANCE_LEVEL]: Technical Constraint
+[TEXT]: The AML/TM Agent subgraph evaluating suspicious transaction spikes must compile structured SAR narrative drafts containing verified customer KYC fields and dollar amounts, escalating to Human-In-The-Loop (HITL) compliance officers prior to FinCEN submission.
+[CITATION]: AI Compliance Architecture Guidelines - AML Queue Agent Subgraph
+
+[CHUNK_ID]: MTRA-032
+[REGULATORY_REF]: FinCEN Guidance FIN-2012-G001
+[TOPIC]: Foreign Located Money Services Businesses (Foreign MSBs)
+[COMPLIANCE_LEVEL]: Federal Mandate
+[TEXT]: Foreign-located MSBs doing business in whole or substantial part within the United States must appoint a U.S.-resident agent for service of legal process and maintain BSA/AML records.
+[CITATION]: 31 CFR � 1022.380(a)(2) / FinCEN Foreign MSB Guidance
+
+[CHUNK_ID]: MTRA-033
+[REGULATORY_REF]: FinCEN Advisory FIN-2022-A001
+[TOPIC]: Kleptocracy & Foreign Official Corruption Red Flags
+[COMPLIANCE_LEVEL]: Advisory Guidance
+[TEXT]: MSBs must monitor for transactions involving high-risk foreign politically exposed persons utilizing real estate purchasing entities or shell companies registered in secrecy jurisdictions.
+[CITATION]: FinCEN Advisory on Foreign Corruption & Kleptocracy Proceeds
+
+[CHUNK_ID]: MTRA-034
+[REGULATORY_REF]: 31 CFR � 1010.520 / PATRIOT Act Section 314(a)
+[TOPIC]: Section 314(a) Information Requests & Mandatory Search
+[COMPLIANCE_LEVEL]: Mandatory Search
+[TEXT]: Upon receiving FinCEN 314(a) subject lists, financial institutions must search account records for the preceding 12 months and transaction logs for the preceding 6 months, reporting matches to FinCEN within 14 days.
+[CITATION]: 31 CFR � 1010.520 - PATRIOT Act 314(a) Search Regulations
+
+[CHUNK_ID]: MTRA-035
+[REGULATORY_REF]: 31 CFR � 1010.540 / PATRIOT Act Section 314(b)
+[TOPIC]: Voluntary Information Sharing Between Financial Institutions
+[COMPLIANCE_LEVEL]: Voluntary Safe Harbor
+[TEXT]: Section 314(b) provides a statutory safe harbor allowing registered financial institutions to share information with one another regarding individuals or entities suspected of terrorism or money laundering.
+[CITATION]: 31 CFR � 1010.540 - PATRIOT Act 314(b) Information Sharing
+
+[CHUNK_ID]: MTRA-036
+[REGULATORY_REF]: MTRA Model Money Transmission Act Section 501
+[TOPIC]: Administrative Penalties & License Revocation Hearing
+[COMPLIANCE_LEVEL]: Enforcement Rule
+[TEXT]: State financial regulators may issue cease-and-desist orders, suspend or revoke licenses, and assess civil monetary penalties up to $5,000 per day for willful state money transmission law violations.
+[CITATION]: MTRA Model Money Transmission Act � 501 - Administrative Remedies
+
+[CHUNK_ID]: MTRA-037
+[REGULATORY_REF]: FinCEN Guidance on Informal Value Transfer Systems (IVTS)
+[TOPIC]: Hawala & Unregistered Remittance Systems
+[COMPLIANCE_LEVEL]: Federal Mandate
+[TEXT]: Operators of Informal Value Transfer Systems (IVTS, such as Hawala or Fei Chien) operating within the U.S. qualify as Money Transmitters under 31 CFR 1022 and are subject to mandatory FinCEN registration and SAR reporting.
+[CITATION]: FinCEN Advisory on Informal Value Transfer Systems
+
+[CHUNK_ID]: MTRA-038
+[REGULATORY_REF]: FinCEN Guidance on Elder Financial Exploitation
+[TOPIC]: Red Flags of Senior Customer Financial Abuse
+[COMPLIANCE_LEVEL]: Advisory Guidance
+[TEXT]: Transactions involving elderly customers executing uncharacteristic wire transfers to unknown foreign recipients accompanied by anxious behavior constitute primary red flags of elder financial exploitation requiring a SAR filing.
+[CITATION]: FinCEN Advisory FIN-2022-A002 - Elder Financial Exploitation
+
+[CHUNK_ID]: MTRA-039
+[REGULATORY_REF]: FinCEN Guidance on Fentanyl & Synthetic Opioid Trafficking
+[TOPIC]: Illicit Synthetic Opioid Remittance Red Flags
+[COMPLIANCE_LEVEL]: Advisory Guidance
+[TEXT]: Financial signals associated with synthetic opioid trafficking include peer-to-peer virtual currency transfers directed to chemical suppliers located in East Asia and Latin America.
+[CITATION]: FinCEN Advisory FIN-2019-A006 - Illicit Synthetic Opioid Financial Flows
+
+[CHUNK_ID]: MTRA-040
+[REGULATORY_REF]: MTRA Guidance on Third-Party Payment Processors (TPPPs)
+[TOPIC]: Payment Processor Oversight & Merchant Risk Triage
+[COMPLIANCE_LEVEL]: Regulatory Guidance
+[TEXT]: Money transmitters processing payments for Third-Party Payment Processors must implement enhanced due diligence over TPPP merchant portfolios to detect deceptive telemarketing or illegal gaming funds.
+[CITATION]: MTRA Guidance on Third-Party Payment Processor Due Diligence
+
+[CHUNK_ID]: MTRA-041
+[REGULATORY_REF]: RAG Evaluation Metric / MTRA Retrieval Benchmark
+[TOPIC]: BSA/MTRA Regulatory Retrieval Recall Benchmark
+[COMPLIANCE_LEVEL]: Evaluation Standard
+[TEXT]: The RAG pipeline serving the supervisor agent must achieve a Recall@k >= 0.95 across 31 CFR 1022 query sets to ensure critical SAR/CTR threshold limits ($2,000 vs $10,000) are never confused during agent reasoning.
+[CITATION]: AI Compliance Architecture Eval Suite - MTRA RAG Benchmark
+
+[CHUNK_ID]: MTRA-042
+[REGULATORY_REF]: FinCEN Enforcement Action - Major MSB Settlement
+[TOPIC]: Enforcement Precedent for Systemic AML Program Failure
+[COMPLIANCE_LEVEL]: Enforcement Settlement
+[TEXT]: FinCEN and state regulators assessed a $180 million civil penalty against a major international money transmitter for failing to implement effective agent oversight, leading to widespread consumer fraud remittances.
+[CITATION]: FinCEN Civil Enforcement Action - MSB Settlement Precedent
+
+[CHUNK_ID]: MTRA-043
+[REGULATORY_REF]: FinCEN Guidance on Prepaid Gift Card Aggregation
+[TOPIC]: Stored Value Card Money Laundering Red Flags
+[COMPLIANCE_LEVEL]: Advisory Guidance
+[TEXT]: Structuring prepaid open-loop card purchases across multiple retail outlets to avoid the $3,000 identification log requirement triggers mandatory SAR reporting obligations.
+[CITATION]: FinCEN Prepaid Access Compliance Examination Guidelines
+
+[CHUNK_ID]: MTRA-044
+[REGULATORY_REF]: FinCEN Guidance on Real Estate Geographic Targeting Orders
+[TOPIC]: All-Cash Residential Real Estate Ownership Disclosure
+[COMPLIANCE_LEVEL]: Mandatory Order
+[TEXT]: Geographic Targeting Orders (GTOs) mandate title insurance companies and payment facilitators to identify natural persons behind legal entities purchasing high-value residential real estate without mortgage financing.
+[CITATION]: FinCEN Real Estate Geographic Targeting Order (GTO) Notice
+
+[CHUNK_ID]: MTRA-045
+[REGULATORY_REF]: 31 CFR � 1010.820
+[TOPIC]: Criminal Penalties for BSA Willful Non-Compliance
+[COMPLIANCE_LEVEL]: Criminal Law
+[TEXT]: Willfully violating BSA provisions or structuring transactions carries criminal penalties up to $250,000 in fines and 5 years imprisonment, increasing to $500,000 and 10 years if executed while violating other federal laws.
+[CITATION]: 31 CFR � 1010.820 / 31 U.S.C. � 5322
+
+[CHUNK_ID]: MTRA-046
+[REGULATORY_REF]: MTRA Guidance on Multi-State Licensing via NMLS
+[TOPIC]: NMLS Money Transmitter License Application Standards
+[COMPLIANCE_LEVEL]: Operational Framework
+[TEXT]: Money transmission applicants operating across multiple state jurisdictions must submit license applications via the NMLS platform, complying with uniform state examination protocols and background checks.
+[CITATION]: NMLS State Money Transmitter Licensing Guidelines
+
+[CHUNK_ID]: MTRA-047
+[REGULATORY_REF]: FinCEN Guidance on Commercial Trade-Based Money Laundering
+[TOPIC]: Trade-Based Money Laundering (TBML) Over-Invoicing
+[COMPLIANCE_LEVEL]: Advisory Guidance
+[TEXT]: TBML red flags involve significant discrepancies between the declared value of imported goods on custom invoices and the actual market value of funds transferred via commercial money transmission pipelines.
+[CITATION]: FinCEN Advisory on Trade-Based Money Laundering Trends
+
+[CHUNK_ID]: MTRA-048
+[REGULATORY_REF]: 31 CFR � 1022.410
+[TOPIC]: Recordkeeping for Money Orders & Traveler's Checks
+[COMPLIANCE_LEVEL]: Mandatory Recordkeeping
+[TEXT]: Issuers and sellers of money orders or traveler's checks must retain records of serial numbers, sale dates, transaction amounts, and purchaser identification details for all transactions exceeding $3,000.
+[CITATION]: 31 CFR � 1022.410 - Recordkeeping for Issuers & Sellers of Monetary Instruments
+
+[CHUNK_ID]: MTRA-049
+[REGULATORY_REF]: FinCEN Guidance on De-Risking & Correspondent Banking
+[TOPIC]: Risk-Based Evaluation vs. Wholesale Account Termination
+[COMPLIANCE_LEVEL]: Regulatory Position Statement
+[TEXT]: FinCEN and federal banking agencies discourage wholesale "de-risking" (indiscriminate termination of entire customer classes like MSBs), urging banks to evaluate MSB accounts using individualized risk assessments.
+[CITATION]: Joint Fact Sheet on Foreign Correspondent Banking & MSB De-Risking
+
+[CHUNK_ID]: MTRA-050
+[REGULATORY_REF]: MTRA Governance Framework for Executive Management
+[TOPIC]: Chief Compliance Officer Independence & Resourcing
+[COMPLIANCE_LEVEL]: Governance Requirement
+[TEXT]: The Chief Compliance Officer of a licensed money transmitter must report directly to the Chief Executive Officer and Board of Directors, possessing independent authority to halt high-risk products or terminate non-compliant agents.
+[CITATION]: MTRA Executive Compliance Governance Standards (Section 2) 

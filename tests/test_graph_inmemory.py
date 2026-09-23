@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import date
 
 import pytest
-from fakes import FakeAuditConn
+from fakes import FakeAuditConn, FakeEmbedder, FakeVectorStore
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.types import Command
 
@@ -49,6 +49,8 @@ def _graph(result: EvaluationResult, saver: InMemorySaver | None = None):
         deps=default_deps(),
         settings=_SETTINGS,
         model=_FakeModel(result),
+        embedder=FakeEmbedder(),
+        vector_store=FakeVectorStore(),
     )
 
 
@@ -168,6 +170,8 @@ def test_clear_disposition_with_no_evidence_is_blocked():
         model=_FakeModel(
             EvaluationResult(recommended=DispositionType.CLEAR, confidence=0.9, rationale="clear")
         ),
+        embedder=FakeEmbedder(),
+        vector_store=FakeVectorStore(),
     )
     cfg = {"configurable": {"thread_id": "no-evidence-1"}}
     alert = ScreeningAlert(
@@ -179,6 +183,38 @@ def test_clear_disposition_with_no_evidence_is_blocked():
 
     snap = graph.get_state(cfg)
     assert "disposition" not in snap.values
+
+
+def test_retrieve_runs_before_evaluate_and_prompt_carries_chunk_markers():
+    captured_messages = {}
+
+    class _CapturingModel:
+        def with_structured_output(self, schema):
+            return self
+
+        def invoke(self, messages):
+            captured_messages["messages"] = messages
+            return EvaluationResult(
+                recommended=DispositionType.CLEAR, confidence=0.95, rationale="no match"
+            )
+
+    graph = build_graph(
+        checkpointer=InMemorySaver(),
+        audit_conn=FakeAuditConn(),
+        deps=default_deps(),
+        settings=_SETTINGS,
+        model=_CapturingModel(),
+        embedder=FakeEmbedder(),
+        vector_store=FakeVectorStore(),
+    )
+    cfg = {"configurable": {"thread_id": "retrieve-1"}}
+    graph.invoke({"alert": _alert("retrieve-1")}, cfg)
+
+    snap = graph.get_state(cfg)
+    assert snap.values["retrieval"]["chunks"][0]["chunk_id"] == "TEST-001"
+
+    human_prompt = captured_messages["messages"][1][1]
+    assert "[test-corpus#TEST-001]" in human_prompt
 
 
 def test_get_state_history_records_every_transition():

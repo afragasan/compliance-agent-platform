@@ -6,6 +6,9 @@
     cap audit export         # push new screening_audit rows to the Object Lock bucket
     cap audit verify         # re-derive the hash chain across every exported batch
     cap audit bucket-config  # print the aws s3api command to (re)provision the bucket
+    cap rag ingest           # chunk + embed the regulatory corpus into the vector store
+    cap rag search           # ad-hoc retrieval, for manual sanity-checking
+    cap retrieval-eval       # precision@k / recall@k over labeled query->chunk pairs
 """
 
 from __future__ import annotations
@@ -92,6 +95,81 @@ def _cmd_audit_bucket_config(args: argparse.Namespace) -> int:
     return 0
 
 
+def _open_vector_store(backend: str | None):
+    """Open the requested (or configured) backend for a one-off CLI command.
+
+    FAISS is loaded/saved explicitly here (rather than via ``rag.factory``) because
+    a CLI invocation is the only place a FAISS store's on-disk file is written back
+    after being mutated (``ingest``); the graph's `retrieve` node only ever reads it.
+    """
+    import psycopg
+
+    from compliance_agent_platform.config import get_settings
+    from compliance_agent_platform.rag.faiss_store import FaissVectorStore
+    from compliance_agent_platform.rag.pgvector_store import PgVectorStore
+
+    settings = get_settings()
+    chosen = backend or settings.vector_backend
+    if chosen != settings.vector_backend:
+        settings = settings.model_copy(update={"vector_backend": chosen})
+    if chosen == "faiss":
+        return (
+            FaissVectorStore.load(settings.faiss_index_path, settings.embedding_dimension),
+            settings,
+            None,
+        )
+    conn = psycopg.connect(settings.resolved_dsn(), autocommit=False)
+    return PgVectorStore(conn), settings, conn
+
+
+def _cmd_rag_ingest(args: argparse.Namespace) -> int:
+    from compliance_agent_platform.rag.faiss_store import FaissVectorStore
+    from compliance_agent_platform.rag.ingest import build_index
+
+    store, settings, conn = _open_vector_store(args.backend)
+    if args.corpus_dir:
+        settings = settings.model_copy(update={"regulatory_corpus_dir": args.corpus_dir})
+    try:
+        summary = build_index(settings, store)
+        if isinstance(store, FaissVectorStore):
+            store.save(settings.faiss_index_path)
+    finally:
+        if conn is not None:
+            conn.close()
+    _print({"documents": summary.documents, "chunks": summary.chunks, "backend": summary.backend})
+    return 0
+
+
+def _cmd_rag_search(args: argparse.Namespace) -> int:
+    from compliance_agent_platform.embeddings import get_embedding_model
+
+    store, _settings, conn = _open_vector_store(args.backend)
+    try:
+        embedder = get_embedding_model()
+        results = store.search(embedder.embed_query(args.query), k=args.k)
+    finally:
+        if conn is not None:
+            conn.close()
+    _print({"query": args.query, "results": [r.model_dump(mode="json") for r in results]})
+    return 0
+
+
+def _cmd_retrieval_eval(args: argparse.Namespace) -> int:
+    from compliance_agent_platform.embeddings import get_embedding_model
+    from compliance_agent_platform.rag.eval import evaluate_retrieval, load_labels
+
+    store, _settings, conn = _open_vector_store(args.backend)
+    try:
+        labels = load_labels(args.pairs)
+        embedder = get_embedding_model()
+        report = evaluate_retrieval(store, embedder, labels, k=args.k)
+    finally:
+        if conn is not None:
+            conn.close()
+    _print(report.model_dump(mode="json") if args.verbose else report.model_dump(exclude={"rows"}))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="cap", description="Sanctions-screening agent runner")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -122,6 +200,29 @@ def main(argv: list[str] | None = None) -> int:
         "bucket-config", help="Print the aws s3api command to (re)provision the bucket"
     )
     audit_bucket_config.set_defaults(func=_cmd_audit_bucket_config)
+
+    rag = sub.add_parser("rag", help="Regulatory-corpus retrieval pipeline")
+    rag_sub = rag.add_subparsers(dest="rag_command", required=True)
+
+    rag_ingest = rag_sub.add_parser("ingest", help="Chunk + embed the corpus into the vector store")
+    rag_ingest.add_argument("--corpus-dir", default=None, help="Overrides regulatory_corpus_dir")
+    rag_ingest.add_argument("--backend", choices=["faiss", "pgvector"], default=None)
+    rag_ingest.set_defaults(func=_cmd_rag_ingest)
+
+    rag_search = rag_sub.add_parser("search", help="Ad-hoc retrieval for manual sanity-checking")
+    rag_search.add_argument("--query", required=True)
+    rag_search.add_argument("--k", type=int, default=5)
+    rag_search.add_argument("--backend", choices=["faiss", "pgvector"], default=None)
+    rag_search.set_defaults(func=_cmd_rag_search)
+
+    retrieval_eval = sub.add_parser(
+        "retrieval-eval", help="precision@k / recall@k over labeled query->chunk pairs"
+    )
+    retrieval_eval.add_argument("--pairs", required=True, help="Path to a labeled-pairs JSON file")
+    retrieval_eval.add_argument("--k", type=int, default=5)
+    retrieval_eval.add_argument("--backend", choices=["faiss", "pgvector"], default=None)
+    retrieval_eval.add_argument("--verbose", action="store_true", help="Include per-query rows")
+    retrieval_eval.set_defaults(func=_cmd_retrieval_eval)
 
     args = parser.parse_args(argv)
     return args.func(args)
