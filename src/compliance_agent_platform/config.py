@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -51,6 +52,19 @@ class Settings(BaseSettings):
             "recordkeeping rules commonly call for multi-year retention)."
         ),
     )
+
+    # --- Retrieval (RAG) --------------------------------------------------------
+    vector_backend: Literal["faiss", "pgvector"] = Field(
+        default="faiss",
+        description="'faiss' for local iteration (no DB round-trip); 'pgvector' for deployed.",
+    )
+    bedrock_embedding_model_id: str = Field(default="amazon.titan-embed-text-v2:0")
+    embedding_dimension: int = Field(
+        default=1024, description="Titan Embed Text v2's default output dimension."
+    )
+    faiss_index_path: str = Field(default="var/faiss/regulatory_corpus.json")
+    retrieval_top_k: int = Field(default=5)
+    regulatory_corpus_dir: str = Field(default="docs/regulatory-corpus")
 
     def resolved_dsn(self) -> str:
         """Return the effective libpq DSN, pulling creds from Secrets Manager if configured."""

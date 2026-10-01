@@ -243,6 +243,45 @@ write grant and follows its own AWS-managed log file validation/digest scheme
 rather than Object Lock. Mixing the two would couple two unrelated trust
 boundaries for no benefit.
 
+## 3. pgvector on RDS (deployed `retrieve` backend)
+
+`Settings.vector_backend=pgvector` needs the `vector` extension available on
+whatever Postgres `DATABASE_URL` points at. The app applies the schema itself —
+`rag/pgvector_store.py::ensure_rag_schema` runs `rag/schema.sql`
+(`CREATE EXTENSION IF NOT EXISTS vector; CREATE TABLE IF NOT EXISTS
+document_chunks ...`) idempotently on first use, the same pattern
+`ensure_audit_schema` already uses for `screening_audit` — no manual SQL is
+required *if* the extension is already allow-listed for the RDS instance.
+
+RDS Postgres supports `pgvector` natively on 15.2+/16.1+ without any parameter-group
+change; confirm before relying on it:
+
+```sql
+SELECT * FROM pg_available_extensions WHERE name = 'vector';
+-- expect one row; if empty, the engine version doesn't support it yet (upgrade it)
+```
+
+Local docker-compose already ships a pgvector-capable image
+(`pgvector/pgvector:pg16`, swapped in for plain `postgres:16` this week) — no setup
+needed there.
+
+**Verified against this project's own dev RDS instance (`cap_test`)**: the
+extension was already available with no parameter-group change, `cap rag ingest
+--backend pgvector` populated `document_chunks` with the full 150-chunk corpus, and
+`cap rag search --backend pgvector` / `cap retrieval-eval --backend pgvector`
+produced results identical to the FAISS backend (see ADR-003 and
+`docs/week3-validation-runbook.md` for the actual numbers). Not every RDS instance
+is guaranteed to have it pre-enabled — run the query above first.
+
+### `document_chunks` is NOT part of the `cap_test` truncation trap
+
+Unlike `screening_audit`/the checkpoint tables, `document_chunks` is reference data
+(the ingested regulatory corpus), not a per-alert transactional record —
+`tests/conftest.py`'s `clean_db` fixture deliberately does **not** truncate it.
+Re-ingesting is always safe and idempotent (`chunk_id` is the upsert key), so there
+is no equivalent of the audit-export prefix-bump dance for this table; see
+`rag/schema.sql`'s header comment and ADR-003's Consequences for the full rationale.
+
 ## Verification checklist
 
 - [ ] `aws s3api get-object-lock-configuration --bucket $BUCKET` shows

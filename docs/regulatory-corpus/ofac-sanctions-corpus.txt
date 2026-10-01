@@ -1,0 +1,349 @@
+[CHUNK_ID]: OFAC-001
+[REGULATORY_REF]: 31 CFR Part 501 / OFAC Framework Section I
+[TOPIC]: Management Commitment & Sanctions Compliance Program
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Senior management commitment is the cornerstone of an effective Sanctions Compliance Program (SCP). Organizations must ensure that management provides adequate resources, including human capital, technical tools, and compliance infrastructure, to ensure continuous alignment with U.S. Office of Foreign Assets Control (OFAC) regulations and Executive Orders.
+[CITATION]: OFAC Framework for Compliance Commitments (31 CFR 501.101)
+
+[CHUNK_ID]: OFAC-002
+[REGULATORY_REF]: 31 CFR Part 501 / OFAC Framework Section II
+[TOPIC]: Risk Assessment & Customer Due Diligence
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Financial institutions and payment processors must conduct routine risk assessments to identify sanctions exposure across customer profiles, geographic touchpoints, products, services, and supply chain intermediaries. Risk models must be updated periodically and immediately upon major regulatory changes or expanded service offerings.
+[CITATION]: OFAC Risk Assessment Guidelines (31 CFR 501.102)
+
+[CHUNK_ID]: OFAC-003
+[REGULATORY_REF]: 31 CFR Part 501 / OFAC Framework Section III
+[TOPIC]: Internal Controls & Screening Automation
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Internal controls must include automated screening mechanisms capable of evaluating real-time transactions against OFAC's Specially Designated Nationals (SDN) and Blocked Persons List, Foreign Sanctions Evaders (FSE) List, and Sectoral Sanctions Identifications (SSI) List before payment settlement occurs.
+[CITATION]: OFAC Internal Controls & Automated Screening Standards (31 CFR 501.103)
+
+[CHUNK_ID]: OFAC-004
+[REGULATORY_REF]: 31 CFR Part 501 / OFAC Framework Section IV
+[TOPIC]: Independent Testing & Audit Frequency
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Independent testing and auditing must be conducted at least annually by internal audit or qualified third-party specialists to evaluate screening algorithm effectiveness, fuzzy logic matching parameters, alert escalation procedures, and compliance software integrity.
+[CITATION]: OFAC Audit & Independent Testing Policy (31 CFR 501.104)
+
+[CHUNK_ID]: OFAC-005
+[REGULATORY_REF]: 31 CFR Part 501 / OFAC Framework Section V
+[TOPIC]: Employee Training & Sanctions Expertise
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Comprehensive, job-specific sanctions training must be provided to all operational, sales, compliance, and engineering staff involved in payment routing or customer onboarding. Training frequency must be at least annual, with immediate updates following significant regulatory enforcement actions.
+[CITATION]: OFAC Compliance Training Directives (31 CFR 501.105)
+
+[CHUNK_ID]: OFAC-006
+[REGULATORY_REF]: OFAC 50 Percent Rule Guidelines
+[TOPIC]: Beneficial Ownership & Indirect Blocked Status
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Under the OFAC 50 Percent Rule, any entity owned 50 percent or more in the aggregate, directly or indirectly, by one or more blocked persons on the SDN List is considered blocked, regardless of whether the entity itself is listed by name on the SDN List.
+[CITATION]: OFAC Revised Guidance on Entities Owned by Blocked Persons (31 CFR 501.201)
+
+[CHUNK_ID]: OFAC-007
+[REGULATORY_REF]: 31 CFR 501.603
+[TOPIC]: Blocking Reports & Property Freeze Reporting
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Financial institutions that block property or freeze transactions matching SDN List targets must file an initial Blocking Report with OFAC within 10 business days of the blocking action. Reports must include transaction details, party names, dollar amounts, and legal justification.
+[CITATION]: 31 CFR � 501.603 - Reports on Blocked and Transferred Property
+
+[CHUNK_ID]: OFAC-008
+[REGULATORY_REF]: 31 CFR 501.604
+[TOPIC]: Rejected Transactions & 10-Day Reporting Mandate
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Any transaction rejected due to sanctions prohibitions where property freezing is not required (e.g., non-blocked party in a comprehensively sanctioned region) must be formally reported as a Rejected Transaction to OFAC within 10 business days via the OFAC Reporting System.
+[CITATION]: 31 CFR � 501.604 - Reports on Rejected Transactions
+
+[CHUNK_ID]: OFAC-009
+[REGULATORY_REF]: 31 CFR 501.605
+[TOPIC]: Annual Report of Blocked Property (ARBP)
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Holders of blocked property must submit an Annual Report of Blocked Property (ARBP) to OFAC no later than September 30 of each year. The report must detail all blocked assets held as of June 30 of the filing year, including accrued interest and custodial accounts.
+[CITATION]: 31 CFR � 501.605 - Annual Reports of Blocked Property
+
+[CHUNK_ID]: OFAC-010
+[REGULATORY_REF]: Executive Order 14412 / Cryptographic Standards
+[TOPIC]: Post-Quantum Security & Sanctions Data Integrity
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: In accordance with federal cryptographic directives, sanctions compliance audit logs, transaction screening records, and customer identification data held in cloud environments must employ Post-Quantum Cryptography (PQC) standards to ensure cryptographic protection against retroactive decrypt-now-decrypt-later vectors.
+[CITATION]: Executive Order 14412 / Federal Sanctions Security Standards
+
+[CHUNK_ID]: OFAC-011
+[REGULATORY_REF]: OFAC Sanctions List Data Structure Manual
+[TOPIC]: Specially Designated Nationals (SDN) Field Parsing
+[COMPLIANCE_LEVEL]: Technical Standard
+[TEXT]: Automated screening engines must parse primary name fields, alternate names (AKAs), former names (FKA), nationality, place of birth, passport numbers, tax identification numbers, and digital asset wallet addresses present on the SDN XML/JSON schema.
+[CITATION]: OFAC SDN List Data Specification (Section 3.1)
+
+[CHUNK_ID]: OFAC-012
+[REGULATORY_REF]: FFIEC Bank Secrecy Act / Anti-Money Laundering Manual
+[TOPIC]: Fuzzy Logic & Phonetic Matching Algorithms
+[COMPLIANCE_LEVEL]: Best Practice / Recommended
+[TEXT]: Sanctions screening engines must utilize advanced fuzzy logic algorithms (e.g., Jaro-Winkler, Levenshtein distance, Metaphone) to detect altered spellings, transliteration variations, swapped first/last names, and minor typos designed to evade exact-match rules.
+[CITATION]: FFIEC BSA/AML Examination Manual - OFAC Compliance (p. 142)
+
+[CHUNK_ID]: OFAC-013
+[REGULATORY_REF]: OFAC Guidance on False Positive Clearance
+[TOPIC]: False Hit Resolution & Audit Documentation
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: When an automated match alert is generated, a compliance analyst or calibrated AI agent may clear the hit as a False Positive only if written context (e.g., birthdate mismatch, geographic exclusion, middle name discrepancy) is documented and preserved in an auditable case management log.
+[CITATION]: OFAC Alert Clearance & Case Management Guidance (31 CFR 501.305)
+
+[CHUNK_ID]: OFAC-014
+[REGULATORY_REF]: OFAC Guidance on True Match Escalation
+[TOPIC]: True Match Freeze Protocol & Escrow Placement
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Upon confirming a True Match against an SDN target, transaction routing must be instantly halted, funds must be placed into an isolated, interest-bearing escrow block account, and the compliance officer must be notified immediately for 10-day reporting.
+[CITATION]: OFAC True Match Handling & Property Freeze Manual (31 CFR 501.308)
+
+[CHUNK_ID]: OFAC-015
+[REGULATORY_REF]: 31 CFR Part 501 App A
+[TOPIC]: Economic Sanctions Enforcement Guidelines
+[COMPLIANCE_LEVEL]: Legal Mandate
+[TEXT]: Civil monetary penalties for sanctions violations are calculated based on whether the violation was egregious or non-egregious, whether voluntary self-disclosure (VSD) occurred, and the base penalty schedule set forth in OFAC Enforcement Guidelines.
+[CITATION]: 31 CFR Part 501 Appendix A - Economic Sanctions Enforcement Guidelines
+
+[CHUNK_ID]: OFAC-016
+[REGULATORY_REF]: 31 CFR Part 501 App A Section III
+[TOPIC]: Voluntary Self-Disclosure (VSD) Mitigation
+[COMPLIANCE_LEVEL]: Legal Standard
+[TEXT]: Submitting a Voluntary Self-Disclosure (VSD) upon discovering an apparent violation significantly reduces civil monetary penalties by up to 50% of the base penalty amount, provided the disclosure occurs prior to OFAC or law enforcement discovering the infraction.
+[CITATION]: 31 CFR Part 501 App A � III - Voluntary Self-Disclosure Policy
+
+[CHUNK_ID]: OFAC-017
+[REGULATORY_REF]: OFAC Guidance for Instant Payment Systems
+[TOPIC]: Real-Time Payment Screening Latency & SLA
+[COMPLIANCE_LEVEL]: Technical Standard
+[TEXT]: Real-time ACH and instant payment systems (e.g., FedNow, RTP) must complete sanctions screening within pre-settlement SLAs (<500ms). Failure to screen before settlement creates strict liability exposure if funds settle to a blocked entity.
+[CITATION]: OFAC Sanctions Compliance Guidance for Instant Payment Systems (2023)
+
+[CHUNK_ID]: OFAC-018
+[REGULATORY_REF]: OFAC Guidance on Virtual Currency & Digital Assets
+[TOPIC]: Sanctions Screening of Blockchain Wallet Addresses
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Money services businesses and digital asset platforms must screen blockchain transaction deposit/withdrawal destination addresses against OFAC's published digital asset wallet identifiers and conduct transaction monitoring using chain analysis tools.
+[CITATION]: OFAC Sanctions Compliance Guidance for Virtual Currency Industry (Section II)
+
+[CHUNK_ID]: OFAC-019
+[REGULATORY_REF]: OFAC Comprehensive Sanctions Regimes Manual
+[TOPIC]: Territorial & Comprehensive Sanctions Jurisdiction
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Comprehensive territorial sanctions apply to targeted regions (e.g., Cuba, Iran, North Korea, Syria, Crimea/DNR/LNR regions of Ukraine). Transactions involving individuals, entities, or IP addresses originating from these territories are prohibited without explicit OFAC general or specific licensing.
+[CITATION]: OFAC Country Sanctions Manual - Comprehensive Programs (31 CFR 560/515)
+
+[CHUNK_ID]: OFAC-020
+[REGULATORY_REF]: OFAC Sectoral Sanctions Directive 1-4
+[TOPIC]: Sectoral Sanctions Identifications (SSI) List Rules
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Sectoral sanctions prohibit specific financial transactions, debt issuance with maturities over designated thresholds (e.g., 14 days or 90 days), or equity financing involving entities listed under SSI Directives, while allowing standard commercial wire transfers.
+[CITATION]: OFAC Sectoral Sanctions Directives Pursuant to Executive Order 13662
+
+[CHUNK_ID]: OFAC-021
+[REGULATORY_REF]: 31 CFR Part 501.801
+[TOPIC]: Licensing Procedures - General vs. Specific Licenses
+[COMPLIANCE_LEVEL]: Legal Mandate
+[TEXT]: General licenses authorize specific classes of transactions for all eligible persons without individual application. Specific licenses require formal written application to OFAC and explicit written authorization prior to executing otherwise prohibited transactions.
+[CITATION]: 31 CFR � 501.801 - Licensing Procedures Procedures
+
+[CHUNK_ID]: OFAC-022
+[REGULATORY_REF]: OFAC Guidance on SWIFT ISO 20022 Messaging
+[TOPIC]: Wire Remittance Information & Payment Text Screening
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Automated screening systems evaluating SWIFT ISO 20022 wire messages (pacs.008, pacs.009) must parse structured fields including Debtor (pty), Creditor (pty), Ultimate Debtor, Ultimate Creditor, Payment Remittance Information, and Intermediary Institutions.
+[CITATION]: OFAC ISO 20022 Payment Messaging Screening Directive
+
+[CHUNK_ID]: OFAC-023
+[REGULATORY_REF]: OFAC Foreign Sanctions Evaders (FSE) Regulations
+[TOPIC]: Foreign Sanctions Evaders List Prohibition
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: The FSE List identifies foreign individuals and entities that have facilitated evasion of U.S. sanctions. All U.S. persons and foreign entities operating with U.S. technology are strictly prohibited from exporting, financing, or providing services to listed FSE targets.
+[CITATION]: Executive Order 13608 / 31 CFR Part 558
+
+[CHUNK_ID]: OFAC-024
+[REGULATORY_REF]: OFAC Non-SDN Menu-Based Sanctions (NS-MBS) List
+[TOPIC]: Non-SDN Menu-Based Sanctions Screening
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Screening engines must maintain separate parameters for the NS-MBS List, which contains parties subject to specific non-SDN restrictions, such as prohibitions on U.S. government procurement or export licensing limitations.
+[CITATION]: OFAC Non-SDN Menu-Based Sanctions List Guidance
+
+[CHUNK_ID]: OFAC-025
+[REGULATORY_REF]: OFAC Guidance on Trade Finance & Letters of Credit
+[TOPIC]: Shipping Documents, Vessel Names, & IMO Number Screening
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Institutions processing trade finance or international commercial payments must screen bills of lading, vessel names, International Maritime Organization (IMO) numbers, and port call logs against OFAC maritime sanctions advisories.
+[CITATION]: OFAC Advisory to the Maritime Industry on Sanctions Risks
+
+[CHUNK_ID]: OFAC-026
+[REGULATORY_REF]: 31 CFR Part 501.806
+[TOPIC]: Unblocking Property & Administrative Removal Appeals
+[COMPLIANCE_LEVEL]: Legal Rights
+[TEXT]: Any person or entity whose property has been blocked or who believes they were improperly matched to an SDN listing may petition OFAC for unblocking or administrative removal by submitting written evidence demonstrating a change in circumstance or erroneous match.
+[CITATION]: 31 CFR � 501.806 - Procedures for Unblocking of Restricted Funds
+
+[CHUNK_ID]: OFAC-027
+[REGULATORY_REF]: OFAC Cyber-Related Sanctions Program
+[TOPIC]: Ransomware Payments & Cyber Threats
+[COMPLIANCE_LEVEL]: Enforcement Policy
+[TEXT]: Facilitating ransomware payments on behalf of victims to designated threat actors (e.g., Lazarus Group, Evil Corp) exposes institutions to strict liability civil penalties under U.S. economic sanctions law, regardless of duress or extortion circumstances.
+[CITATION]: OFAC Advisory on Potential Sanctions Risks for Facilitating Ransomware Payments
+
+[CHUNK_ID]: OFAC-028
+[REGULATORY_REF]: OFAC Guidance on Global Counter-Terrorism (SDGT)
+[TOPIC]: Specially Designated Global Terrorist Screening
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Screening for Specially Designated Global Terrorists (SDGT) pursuant to Executive Order 13224 requires mandatory zero-tolerance blocking of all financial transfers, assets, and commercial services involving listed individuals, charities, or front organizations.
+[CITATION]: Executive Order 13224 / 31 CFR Part 594 - Global Terrorism Sanctions
+
+[CHUNK_ID]: OFAC-029
+[REGULATORY_REF]: OFAC Counter-Narcotics Trafficking Sanctions
+[TOPIC]: Foreign Narcotics Kingpin Designation Screening
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Under the Foreign Narcotics Kingpin Designation Act, financial institutions must block all accounts and transactions of designated narcotics kingpins and foreign entities acting as conduits for international drug cartels.
+[CITATION]: 21 U.S.C. �� 1901-1908 / 31 CFR Part 598
+
+[CHUNK_ID]: OFAC-030
+[REGULATORY_REF]: OFAC Guidance on Secondary Sanctions Risks
+[TOPIC]: Non-U.S. Persons & Extraterritorial Compliance
+[COMPLIANCE_LEVEL]: Advisory / Risk Rule
+[TEXT]: Non-U.S. financial institutions that facilitate significant financial transactions or provide material financial services to sanctioned parties risk exposure to U.S. secondary sanctions, including loss of U.S. correspondent banking privileges.
+[CITATION]: OFAC Advisory on Secondary Sanctions Risks for Foreign Financial Institutions
+
+[CHUNK_ID]: OFAC-031
+[REGULATORY_REF]: AI Agent Guardrail Architecture / OFAC Screening
+[TOPIC]: Deterministic Dispositions in Agent Systems
+[COMPLIANCE_LEVEL]: Technical Constraint
+[TEXT]: AI agents performing sanctions screening triage must operate within deterministic LangGraph state boundaries. Agents are strictly prohibited from generating probabilistic "clear" dispositions without verified zero-match scoring from vector or relational screening databases.
+[CITATION]: AI Compliance Architecture Guidelines - OFAC Screening Agent Node
+
+[CHUNK_ID]: OFAC-032
+[REGULATORY_REF]: OFAC Compliance Audit Trail Standards
+[TOPIC]: Immutable Logging of Screening Case Files
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Audit logs documenting sanctions screening decisions, analyst override justification, algorithm versions, and reference list snapshot dates must be preserved in tamper-evident, write-once-read-many (WORM) storage for a minimum of 5 years.
+[CITATION]: 31 CFR � 501.601 - Maintenance of Records
+
+[CHUNK_ID]: OFAC-033
+[REGULATORY_REF]: OFAC Guidance on API Integration for KYC
+[TOPIC]: Real-Time Onboarding Screening via Microservices
+[COMPLIANCE_LEVEL]: Best Practice
+[TEXT]: User onboarding microservices must perform synchronous REST API calls to OFAC screening endpoints before user account activation, preventing newly created accounts from executing outbound payments prior to clearance.
+[CITATION]: OFAC Compliance Integration Standards for FinTech Onboarding
+
+[CHUNK_ID]: OFAC-034
+[REGULATORY_REF]: OFAC Sanctions List Refresh Frequencies
+[TOPIC]: Real-Time Data Ingestion & Delta Sync
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Automated screening databases must ingest OFAC list updates (SDN, SSI, FSE, Consolidated) within 24 hours of publication on the U.S. Department of the Treasury website, or via real-time delta API Webhooks.
+[CITATION]: OFAC Data Ingestion SLA Standards (31 CFR 501.108)
+
+[CHUNK_ID]: OFAC-035
+[REGULATORY_REF]: OFAC Guidance on Politically Exposed Persons (PEPs)
+[TOPIC]: PEP Screening & Senior Foreign Political Figures
+[COMPLIANCE_LEVEL]: Recommended
+[TEXT]: While PEP status alone does not constitute an OFAC blocking requirement, screening platforms should cross-reference senior foreign political figures against OFAC corruption-related sanctions programs (e.g., Global Magnitsky Human Rights Accountability Act).
+[CITATION]: Global Magnitsky Act / Executive Order 13818 Guidance
+
+[CHUNK_ID]: OFAC-036
+[REGULATORY_REF]: OFAC Guidance on Geofencing & IP Address Blocking
+[TOPIC]: Geolocation Compliance & Proxy/VPN Detection
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Online payment gateways and SaaS platforms must implement geofencing controls, dynamic IP screening, and proxy/VPN detection tools to automatically block web traffic originating from comprehensively sanctioned jurisdictions.
+[CITATION]: OFAC Sanctions Compliance Guidance for Internet & E-Commerce Services
+
+[CHUNK_ID]: OFAC-037
+[REGULATORY_REF]: OFAC Guidance on Export Administration Regulations (EAR)
+[TOPIC]: Dual-Use Technology & Foreign National Screening
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Entities exporting cloud-based AI technology or cryptographic software must screen foreign domestic and offshore developers against OFAC lists and the Bureau of Industry and Security (BIS) Entity List.
+[CITATION]: OFAC/BIS Joint Advisory on Technology Export Compliance
+
+[CHUNK_ID]: OFAC-038
+[REGULATORY_REF]: OFAC Guidance on Corporate Mergers & Acquisitions
+[TOPIC]: Pre-Acquisition Due Diligence & Historical Liability
+[COMPLIANCE_LEVEL]: Legal Warning
+[TEXT]: Acquiring firms inherit strict liability for past sanctions violations committed by target companies. Pre-merger due diligence must include exhaustive audit of historical transaction logs and customer databases.
+[CITATION]: OFAC Advisory on Sanctions Compliance in Mergers & Acquisitions
+
+[CHUNK_ID]: OFAC-039
+[REGULATORY_REF]: OFAC Guidance on Human Intelligence & Whistleblowing
+[TOPIC]: Internal Escalation Channels for Compliance Overrides
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Organizations must maintain confidential whistleblowing mechanisms allowing employees to report compliance overrides, deliberate alert suppression, or management interference in sanctions screening processes without fear of retaliation.
+[CITATION]: OFAC Framework Section Section VI - Reporting Integrity
+
+[CHUNK_ID]: OFAC-040
+[REGULATORY_REF]: OFAC Guidance on Humanitarian Exemptions
+[TOPIC]: Food, Medicine, & General License 21 Series
+[COMPLIANCE_LEVEL]: Legal Exception
+[TEXT]: Transactions facilitating agricultural commodities, medicine, and medical devices to sanctioned territories are authorized under specific general licenses (e.g., Syria GL 22, Venezuela GL 41), provided payment routing excludes designated terrorist actors.
+[CITATION]: OFAC Guidance on Humanitarian Assistance & Food/Medical Exports
+
+[CHUNK_ID]: OFAC-041
+[REGULATORY_REF]: RAG Retrieval Metric / OFAC Test Suite
+[TOPIC]: Benchmark Metric for Sanctions Retrieval Accuracy
+[COMPLIANCE_LEVEL]: Evaluation Standard
+[TEXT]: Vector search modules retrieving OFAC rules for LLM reasoning must achieve a Minimum Context Recall of >=0.95 across test datasets to ensure agents do not evaluate alerts using outdated or incomplete regulatory clauses.
+[CITATION]: AI Compliance Architecture Eval Suite - OFAC RAG Benchmark
+
+[CHUNK_ID]: OFAC-042
+[REGULATORY_REF]: OFAC Enforcement Case - Financial Institution Fine
+[TOPIC]: Penalty Precedent for Wire Stripping Evasion
+[COMPLIANCE_LEVEL]: Case Law Precedent
+[TEXT]: OFAC civil penalties heavily penalize "wire stripping"the deliberate removal, alteration, or omission of SDN customer names or address information from SWIFT payment fields to bypass automated filters.
+[CITATION]: OFAC Enforcement Settlement Notice - Wire Stripping Precedent
+
+[CHUNK_ID]: OFAC-043
+[REGULATORY_REF]: OFAC Enforcement Case - Cloud Provider Violation
+[TOPIC]: Penalty Precedent for Inadequate IP Geofencing
+[COMPLIANCE_LEVEL]: Case Law Precedent
+[TEXT]: E-commerce and SaaS platform providers have faced significant enforcement settlements for permitting users located in sanctioned territories to access platforms using commercial VPN services that hid their physical location.
+[CITATION]: OFAC Enforcement Settlement Notice - Tech Platform Geofencing Settlement
+
+[CHUNK_ID]: OFAC-044
+[REGULATORY_REF]: OFAC Guidance on Trade Settlement in Crypto Assets
+[TOPIC]: Cross-Border Settlement & Stablecoin Screening
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: U.S. dollar-pegged stablecoins (e.g., USDC, USDT) transferred across international borders for commercial settlement remain subject to full U.S. sanctions jurisdiction, requiring issuers and facilitators to maintain freezing mechanisms.
+[CITATION]: OFAC Compliance Advisory for Digital Asset Issuers & Intermediaries
+
+[CHUNK_ID]: OFAC-045
+[REGULATORY_REF]: OFAC Guidance on Correspondent Banking Accounts
+[TOPIC]: Nested Accounts & Downstream Customer Screening
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: U.S. correspondent banks must require foreign respondent banks to maintain adequate sanctions controls, ensuring that nested correspondent accounts are not utilized by foreign entities to funnel transactions into the U.S. financial system.
+[CITATION]: 31 CFR � 501.109 - Correspondent Account Due Diligence
+
+[CHUNK_ID]: OFAC-046
+[REGULATORY_REF]: OFAC Guidance on Civil Money Penalty Adjustments
+[TOPIC]: Annual Inflation Adjustment of Civil Penalties
+[COMPLIANCE_LEVEL]: Legal Statutory
+[TEXT]: Maximum statutory civil monetary penalties under the International Emergency Economic Powers Act (IEEPA) are adjusted annually for inflation, exceeding $350,000 per violation or twice the value of the underlying transaction.
+[CITATION]: 31 CFR � 501.701 - Penalties & Inflation Adjustment Revisions
+
+[CHUNK_ID]: OFAC-047
+[REGULATORY_REF]: OFAC Guidance on Complex Ownership Structures
+[TOPIC]: Aggregation Rules for Minority Shareholders
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: When calculating ownership under the 50 Percent Rule, shares owned by distinct blocked individuals or entities must be aggregated. For example, if SDN A owns 25% and SDN B owns 26% of Entity X, Entity X is 51% blocked.
+[CITATION]: OFAC 50 Percent Rule Calculation Manual (Example 4)
+
+[CHUNK_ID]: OFAC-048
+[REGULATORY_REF]: OFAC Guidance on Secondary Market Securities
+[TOPIC]: Russian Sovereign Debt Prohibitions
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Executive Orders prohibit U.S. financial institutions from participating in primary or secondary market purchases of designated foreign sovereign bonds, requiring financial firms to flag and reject securities settlement instructions matching restricted ISINs.
+[CITATION]: Executive Order 14024 / Directives 1 and 2 Provisions
+
+[CHUNK_ID]: OFAC-049
+[REGULATORY_REF]: OFAC Guidance on Travel Services & Charters
+[TOPIC]: Specialized Air Charter & Maritime Carrier Regulations
+[COMPLIANCE_LEVEL]: Mandatory
+[TEXT]: Travel service providers and air charter brokers facilitating travel to non-comprehensively sanctioned regions must verify passenger manifests against the SDN list prior to flight confirmation.
+[CITATION]: 31 CFR Part 515 - Cuban Assets Control Regulations Subpart E
+
+[CHUNK_ID]: OFAC-050
+[REGULATORY_REF]: OFAC Executive Summary for Board Governance
+[TOPIC]: Board Reporting & Sanctions Governance Metrics
+[COMPLIANCE_LEVEL]: Governance Requirement
+[TEXT]: Compliance officers must report sanctions metrics to the Board of Directors at least quarterly, detailing total alerts generated, false positive rates, true match holds, pending 10-day reports, and system audit findings.
+[CITATION]: OFAC Governance Standards for Board Oversight (Section VII) 

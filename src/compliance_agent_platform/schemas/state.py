@@ -18,6 +18,7 @@ def _extend(left: list, right: list) -> list:
 class ScreeningState(TypedDict, total=False):
     alert: dict
     enrichment: dict
+    retrieval: dict
     evaluation: dict
     analyst_decision: dict
     disposition: dict

@@ -5,16 +5,22 @@ from __future__ import annotations
 from datetime import date
 
 import pytest
-from fakes import FakeAuditConn
+from fakes import FakeAuditConn, FakeEmbedder, FakeVectorStore
 
 from compliance_agent_platform.adapters.mock import default_deps
 from compliance_agent_platform.config import Settings
 from compliance_agent_platform.graph.builder import NodeContext
-from compliance_agent_platform.graph.nodes import make_dispose, make_enrich, make_evaluate
+from compliance_agent_platform.graph.nodes import (
+    make_dispose,
+    make_enrich,
+    make_evaluate,
+    make_retrieve,
+)
 from compliance_agent_platform.schemas.alert import ScreeningAlert, WatchlistHit
 from compliance_agent_platform.schemas.disposition import DecidedBy, DispositionType, MatchedEntity
 from compliance_agent_platform.schemas.enrichment import EnrichmentBundle
 from compliance_agent_platform.schemas.evaluation import EvaluationResult
+from compliance_agent_platform.schemas.retrieval import RetrievalBundle
 
 _SETTINGS = Settings(
     clear_confidence_threshold=0.85,
@@ -37,12 +43,14 @@ class _FakeModel:
         return self.result
 
 
-def _ctx(model=None):
+def _ctx(model=None, vector_store=None):
     return NodeContext(
         deps=default_deps(),
         audit_conn=FakeAuditConn(),
         settings=_SETTINGS,
         model=model or _FakeModel(),
+        embedder=FakeEmbedder(),
+        vector_store=vector_store or FakeVectorStore(),
     )
 
 
@@ -103,13 +111,54 @@ def test_enrich_flags_insufficient_when_hit_unresolved():
     assert "watchlist_entries_unresolved" in bundle.missing
 
 
+# --- retrieve ----------------------------------------------------------------
+
+
+def test_retrieve_populates_state_and_audits_chunk_ids():
+    ctx = _ctx()
+    out = make_retrieve(ctx)(
+        {"alert": _alert(), "enrichment": EnrichmentBundle().model_dump(mode="json")}
+    )
+
+    bundle = RetrievalBundle.model_validate(out["retrieval"])
+    assert bundle.chunks
+    assert bundle.chunks[0].chunk_id == "TEST-001"
+
+    audit_row = ctx.audit_conn.rows[-1]
+    assert audit_row["step"] == "retrieve"
+    assert audit_row["detail"].obj["chunk_ids"] == ["TEST-001"]
+
+
+def test_retrieve_query_includes_list_names_and_nationality():
+    captured = {}
+    ctx = _ctx()
+    ctx.embedder = type(
+        "Embedder", (), {"embed_query": staticmethod(lambda q: captured.setdefault("query", q))}
+    )()
+
+    make_retrieve(ctx)(
+        {"alert": _alert(), "enrichment": EnrichmentBundle().model_dump(mode="json")}
+    )
+
+    assert "OFAC SDN" in captured["query"]
+    assert "nationality RU" in captured["query"]
+
+
 # --- evaluate --------------------------------------------------------------
+
+
+def _empty_retrieval() -> dict:
+    return RetrievalBundle(query="q").model_dump(mode="json")
 
 
 def test_evaluate_rule_overlay_skips_model_when_insufficient():
     model = _FakeModel(result=None)  # would blow up if invoked
     enrichment = EnrichmentBundle(insufficient_data=True, missing=["subject_date_of_birth"])
-    state = {"alert": _alert(), "enrichment": enrichment.model_dump(mode="json")}
+    state = {
+        "alert": _alert(),
+        "enrichment": enrichment.model_dump(mode="json"),
+        "retrieval": _empty_retrieval(),
+    }
 
     out = make_evaluate(_ctx(model))(state)
 
@@ -125,7 +174,11 @@ def test_evaluate_calls_model_when_enrichment_sufficient():
     )
     model = _FakeModel(result=canned)
     enrichment = EnrichmentBundle(insufficient_data=False)
-    state = {"alert": _alert(), "enrichment": enrichment.model_dump(mode="json")}
+    state = {
+        "alert": _alert(),
+        "enrichment": enrichment.model_dump(mode="json"),
+        "retrieval": _empty_retrieval(),
+    }
 
     out = make_evaluate(_ctx(model))(state)
 
