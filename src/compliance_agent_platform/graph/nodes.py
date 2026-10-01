@@ -8,6 +8,8 @@ need at entry and dump them back on exit.
 
 from __future__ import annotations
 
+import logging
+import time
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
@@ -34,6 +36,8 @@ if TYPE_CHECKING:
     from compliance_agent_platform.graph.builder import NodeContext
 
 Node = Callable[[ScreeningState], dict]
+
+logger = logging.getLogger(__name__)
 
 _EVAL_SYSTEM = (
     "You are a sanctions-screening analyst assistant. Given an alert and enrichment "
@@ -191,7 +195,12 @@ def make_retrieve(ctx: NodeContext) -> Node:
 
 
 def make_evaluate(ctx: NodeContext) -> Node:
-    structured = ctx.model.with_structured_output(EvaluationResult)
+    primary_structured = ctx.model.with_structured_output(EvaluationResult, include_raw=True)
+    fallback_structured = (
+        ctx.model_fallback.with_structured_output(EvaluationResult, include_raw=True)
+        if ctx.model_fallback is not None
+        else None
+    )
 
     def evaluate(state: ScreeningState) -> dict:
         alert = ScreeningAlert.model_validate(state["alert"])
@@ -216,7 +225,7 @@ def make_evaluate(ctx: NodeContext) -> Node:
                     payload_hash=hash_payload(
                         {"alert": state["alert"], "enrichment": state["enrichment"]}
                     ),
-                    model_id=ctx.settings.bedrock_model_id,
+                    model_id=ctx.model_id,
                     prompt_version=ctx.settings.prompt_version,
                     detail={"rule_overlay": "insufficient_data"},
                 ),
@@ -225,7 +234,28 @@ def make_evaluate(ctx: NodeContext) -> Node:
 
         prompt = _build_eval_prompt(alert, enrichment, retrieval)
         messages = [("system", _EVAL_SYSTEM), ("human", prompt)]
-        result: EvaluationResult = structured.invoke(messages)
+
+        backend, model_id = ctx.model_backend, ctx.model_id
+        started = time.monotonic()
+        try:
+            raw_result = primary_structured.invoke(messages)
+        except Exception as exc:
+            if fallback_structured is None:
+                raise
+            logger.warning(
+                "evaluate: primary backend %s (%s) failed (%s); falling back to %s (%s)",
+                ctx.model_backend,
+                ctx.model_id,
+                exc,
+                ctx.fallback_backend,
+                ctx.fallback_model_id,
+            )
+            backend, model_id = ctx.fallback_backend, ctx.fallback_model_id
+            raw_result = fallback_structured.invoke(messages)
+        latency_ms = round((time.monotonic() - started) * 1000)
+
+        result: EvaluationResult = raw_result["parsed"]
+        usage = getattr(raw_result["raw"], "usage_metadata", None) or {}
 
         _audit(
             ctx,
@@ -240,8 +270,17 @@ def make_evaluate(ctx: NodeContext) -> Node:
                 ),
                 llm_request={"system": _EVAL_SYSTEM, "human": prompt},
                 llm_response=result.model_dump(mode="json"),
-                model_id=ctx.settings.bedrock_model_id,
+                model_id=model_id,
                 prompt_version=ctx.settings.prompt_version,
+                detail={
+                    "queue": alert.queue,
+                    "backend": backend,
+                    "fallback_used": backend != ctx.model_backend,
+                    "input_tokens": usage.get("input_tokens"),
+                    "output_tokens": usage.get("output_tokens"),
+                    "total_tokens": usage.get("total_tokens"),
+                    "latency_ms": latency_ms,
+                },
             ),
         )
         return {"evaluation": result.model_dump(mode="json")}
@@ -333,7 +372,7 @@ def make_dispose(ctx: NodeContext) -> Node:
                 matched_entities=evaluation.matched_entities,
                 evidence=evaluation.evidence or _fallback_evidence(state),
                 decided_by=DecidedBy.AGENT,
-                model_id=ctx.settings.bedrock_model_id,
+                model_id=ctx.model_id,
                 prompt_version=ctx.settings.prompt_version,
             )
 

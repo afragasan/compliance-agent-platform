@@ -128,11 +128,11 @@ def test_wrap_node_true_escalate_via_full_graph_emits_no_failure_row():
     )
 
     class _FakeModel:
-        def with_structured_output(self, schema):
+        def with_structured_output(self, schema, **kwargs):
             return self
 
-        def invoke(self, messages):
-            return evaluation
+        def invoke(self, messages, **kwargs):
+            return {"raw": None, "parsed": evaluation, "parsing_error": None}
 
     alert = ScreeningAlert(
         alert_id="A1",

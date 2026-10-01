@@ -35,12 +35,12 @@ class _FakeModel:
         self.result = result
         self.invoked = False
 
-    def with_structured_output(self, schema):
+    def with_structured_output(self, schema, **kwargs):
         return self
 
-    def invoke(self, messages):
+    def invoke(self, messages, **kwargs):
         self.invoked = True
-        return self.result
+        return {"raw": None, "parsed": self.result, "parsing_error": None}
 
 
 def _ctx(model=None, vector_store=None):
