@@ -52,7 +52,10 @@ def check_output(model: object, text: str) -> GuardrailResult:
 
 
 def _check(model: object, text: str, *, rail: str) -> GuardrailResult:
-    if os.environ.get("CAP_FAKE_GUARDRAILS"):
+    # CAP_FAKE_MODEL implies fake guardrails too: it hands `evaluate` a plain
+    # `_FakeChatModel`, not a real LangChain chat model, and nemoguardrails can only
+    # wrap the latter - there is no real backend here for a self-check rail to run on.
+    if os.environ.get("CAP_FAKE_GUARDRAILS") or os.environ.get("CAP_FAKE_MODEL"):
         result = _fake_check(text, rail=rail)
     else:
         result = _real_check(model, text, rail=rail)
