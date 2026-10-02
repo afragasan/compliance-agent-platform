@@ -19,6 +19,13 @@ from dotenv import load_dotenv
 # the same file pydantic-settings reads for the app.
 load_dotenv()
 
+# Default the whole suite to the offline guardrails fake: `evaluate` calls
+# guardrails.service.check_input/check_output unconditionally, even when a test
+# injects a plain test-double `model=` that a real nemoguardrails LLMRails can't
+# wrap. A real-rails test (Stage F's live validation) opts back in with
+# `monkeypatch.delenv("CAP_FAKE_GUARDRAILS")`.
+os.environ.setdefault("CAP_FAKE_GUARDRAILS", "1")
+
 _EXAMPLES = Path(__file__).resolve().parent.parent / "examples"
 
 # Checkpoint data tables to wipe between integration tests. `checkpoint_migrations`

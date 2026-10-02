@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 from langgraph.types import interrupt
 
 from compliance_agent_platform.audit.log import AuditRecord, hash_payload, write_audit
+from compliance_agent_platform.guardrails import service as guardrails_service
 from compliance_agent_platform.schemas.alert import ScreeningAlert
 from compliance_agent_platform.schemas.disposition import (
     DecidedBy,
@@ -233,9 +234,10 @@ def make_evaluate(ctx: NodeContext) -> Node:
             return {"evaluation": result.model_dump(mode="json")}
 
         prompt = _build_eval_prompt(alert, enrichment, retrieval)
+        guardrails_service.check_input(ctx.model, prompt)
         messages = [("system", _EVAL_SYSTEM), ("human", prompt)]
 
-        backend, model_id = ctx.model_backend, ctx.model_id
+        backend, model_id, serving_model = ctx.model_backend, ctx.model_id, ctx.model
         started = time.monotonic()
         try:
             raw_result = primary_structured.invoke(messages)
@@ -250,12 +252,17 @@ def make_evaluate(ctx: NodeContext) -> Node:
                 ctx.fallback_backend,
                 ctx.fallback_model_id,
             )
-            backend, model_id = ctx.fallback_backend, ctx.fallback_model_id
+            backend, model_id, serving_model = (
+                ctx.fallback_backend,
+                ctx.fallback_model_id,
+                ctx.model_fallback,
+            )
             raw_result = fallback_structured.invoke(messages)
         latency_ms = round((time.monotonic() - started) * 1000)
 
         result: EvaluationResult = raw_result["parsed"]
         usage = getattr(raw_result["raw"], "usage_metadata", None) or {}
+        guardrails_service.check_output(serving_model, result.rationale)
 
         _audit(
             ctx,
