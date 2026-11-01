@@ -18,12 +18,14 @@ routing tests — never for production, where the variable is absent.
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 from dataclasses import dataclass
 from functools import lru_cache
 
 from langchain.chat_models import init_chat_model
+from langchain_openai import ChatOpenAI
 
 from compliance_agent_platform.config import get_settings
 from compliance_agent_platform.schemas.disposition import DispositionType, MatchedEntity
@@ -142,18 +144,60 @@ def _bedrock_chat_model():
     )
 
 
+class _NimChatOpenAI(ChatOpenAI):
+    """``ChatOpenAI`` that sends the legacy ``max_tokens`` field NIM's server accepts.
+
+    ``langchain-openai`` renames ``max_tokens`` to ``max_completion_tokens`` in the request
+    payload, which NIM's OpenAI-compatible endpoint rejects (HTTP 400 ``extra_forbidden``).
+    NeMo Guardrails' self-check rails bind ``max_tokens`` on every call, so without this the
+    guardrails fail against a real NIM.
+    """
+
+    def _get_request_payload(self, input_, *, stop=None, **kwargs):
+        payload = super()._get_request_payload(input_, stop=stop, **kwargs)
+        if "max_completion_tokens" in payload:
+            payload["max_tokens"] = payload.pop("max_completion_tokens")
+        return payload
+
+
+def structured_output(model, backend: str, schema):
+    """Wrap ``model`` so ``.invoke`` returns ``{"raw", "parsed", "parsing_error"}`` for ``schema``.
+
+    Both backends yield the same shape but get there differently: NIM's OpenAI-compatible
+    server accepts only ``response_format`` of ``text``/``json_object`` (not ``json_schema``),
+    so it uses ``json_mode``; Bedrock Converse has no ``json_mode`` and enforces the schema
+    through tool use (the default). Pair this with :func:`json_mode_instruction` for ``nim``.
+    """
+    if backend == "nim":
+        return model.with_structured_output(schema, method="json_mode", include_raw=True)
+    return model.with_structured_output(schema, include_raw=True)
+
+
+def json_mode_instruction(backend: str, schema) -> str:
+    """System-prompt suffix a backend needs because its structured output is prompt-driven.
+
+    ``json_mode`` only forces syntactically valid JSON; it does not tell the model the
+    shape, so NIM must be given the schema in the prompt. Empty for tool-use backends.
+    """
+    if backend != "nim":
+        return ""
+    return (
+        "\n\nRespond with a single JSON object (no prose, no markdown fences) that conforms "
+        "to this JSON Schema:\n" + json.dumps(schema.model_json_schema())
+    )
+
+
 @lru_cache
 def _nim_chat_model():
     """Return a deterministic (temperature 0) client for the self-hosted NIM endpoint.
 
-    NIM exposes an OpenAI-compatible ``/v1/chat/completions`` API, so this is
-    ``model_provider="openai"`` pointed at ``nim_base_url`` rather than a new SDK — the
-    same ``init_chat_model`` helper used for Bedrock above, just a different provider.
+    NIM exposes an OpenAI-compatible ``/v1/chat/completions`` API, so this is an OpenAI
+    client pointed at ``nim_base_url`` rather than a new SDK (see :class:`_NimChatOpenAI`
+    for the one payload difference).
     """
     settings = get_settings()
-    return init_chat_model(
-        settings.nim_model_id,
-        model_provider="openai",
+    return _NimChatOpenAI(
+        model=settings.nim_model_id,
         base_url=settings.nim_base_url,
         api_key=settings.nim_api_key,
         temperature=0,

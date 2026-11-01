@@ -17,6 +17,8 @@ from langgraph.types import interrupt
 
 from compliance_agent_platform.audit.log import AuditRecord, hash_payload, write_audit
 from compliance_agent_platform.guardrails import service as guardrails_service
+from compliance_agent_platform.guardrails.errors import GuardrailViolationError
+from compliance_agent_platform.llm import json_mode_instruction, structured_output
 from compliance_agent_platform.schemas.alert import ScreeningAlert
 from compliance_agent_platform.schemas.disposition import (
     DecidedBy,
@@ -196,9 +198,9 @@ def make_retrieve(ctx: NodeContext) -> Node:
 
 
 def make_evaluate(ctx: NodeContext) -> Node:
-    primary_structured = ctx.model.with_structured_output(EvaluationResult, include_raw=True)
+    primary_structured = structured_output(ctx.model, ctx.model_backend, EvaluationResult)
     fallback_structured = (
-        ctx.model_fallback.with_structured_output(EvaluationResult, include_raw=True)
+        structured_output(ctx.model_fallback, ctx.fallback_backend, EvaluationResult)
         if ctx.model_fallback is not None
         else None
     )
@@ -234,13 +236,23 @@ def make_evaluate(ctx: NodeContext) -> Node:
             return {"evaluation": result.model_dump(mode="json")}
 
         prompt = _build_eval_prompt(alert, enrichment, retrieval)
-        guardrails_service.check_input(ctx.model, prompt)
-        messages = [("system", _EVAL_SYSTEM), ("human", prompt)]
+
+        def messages_for(backend: str) -> list[tuple[str, str]]:
+            system = _EVAL_SYSTEM + json_mode_instruction(backend, EvaluationResult)
+            return [("system", system), ("human", prompt)]
 
         backend, model_id, serving_model = ctx.model_backend, ctx.model_id, ctx.model
-        started = time.monotonic()
+        input_checked = False
         try:
-            raw_result = primary_structured.invoke(messages)
+            # The input rail runs on the primary model, so a primary outage can surface
+            # here as well as in the invoke below - both are fallback triggers. A real
+            # GuardrailViolationError is a verdict about the prompt, never a fallback.
+            guardrails_service.check_input(ctx.model, prompt)
+            input_checked = True
+            started = time.monotonic()
+            raw_result = primary_structured.invoke(messages_for(ctx.model_backend))
+        except GuardrailViolationError:
+            raise
         except Exception as exc:
             if fallback_structured is None:
                 raise
@@ -257,7 +269,10 @@ def make_evaluate(ctx: NodeContext) -> Node:
                 ctx.fallback_model_id,
                 ctx.model_fallback,
             )
-            raw_result = fallback_structured.invoke(messages)
+            if not input_checked:
+                guardrails_service.check_input(serving_model, prompt)
+                started = time.monotonic()
+            raw_result = fallback_structured.invoke(messages_for(backend))
         latency_ms = round((time.monotonic() - started) * 1000)
 
         result: EvaluationResult = raw_result["parsed"]
@@ -280,7 +295,7 @@ def make_evaluate(ctx: NodeContext) -> Node:
                 model_id=model_id,
                 prompt_version=ctx.settings.prompt_version,
                 detail={
-                    "queue": alert.queue,
+                    "queue": ctx.settings.queue,
                     "backend": backend,
                     "fallback_used": backend != ctx.model_backend,
                     "input_tokens": usage.get("input_tokens"),
@@ -290,7 +305,12 @@ def make_evaluate(ctx: NodeContext) -> Node:
                 },
             ),
         )
-        return {"evaluation": result.model_dump(mode="json")}
+        return {
+            "evaluation": result.model_dump(mode="json"),
+            # The model that actually answered (differs from the routed primary after a
+            # fallback) - dispose stamps this on the Disposition instead of ctx.model_id.
+            "evaluation_model": {"backend": backend, "model_id": model_id},
+        }
 
     return evaluate
 
@@ -379,7 +399,7 @@ def make_dispose(ctx: NodeContext) -> Node:
                 matched_entities=evaluation.matched_entities,
                 evidence=evaluation.evidence or _fallback_evidence(state),
                 decided_by=DecidedBy.AGENT,
-                model_id=ctx.model_id,
+                model_id=(state.get("evaluation_model") or {}).get("model_id", ctx.model_id),
                 prompt_version=ctx.settings.prompt_version,
             )
 
