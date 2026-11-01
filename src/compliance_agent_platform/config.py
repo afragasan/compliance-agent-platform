@@ -102,6 +102,15 @@ class Settings(BaseSettings):
         default=1.624,
         description="On-demand g5.4xlarge USD/hour (us-east-1), amortized over NIM call latency.",
     )
+    guardrail_input_backend: Literal["serving", "bedrock"] = Field(
+        default="serving",
+        description=(
+            "Which model judges the input rail. 'serving' = the model answering the call "
+            "(NIM for NIM-routed queues). 'bedrock' = always Bedrock Claude, which is "
+            "stricter than the 8B NIM model but adds a Bedrock call and sends the "
+            "untrusted alert text to Bedrock on every NIM-routed run."
+        ),
+    )
     bedrock_guardrail_id: str | None = Field(
         default=None,
         description="Bedrock Guardrails second-layer defense on the Bedrock path; unset=disabled.",

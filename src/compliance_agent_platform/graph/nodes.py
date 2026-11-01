@@ -18,7 +18,11 @@ from langgraph.types import interrupt
 from compliance_agent_platform.audit.log import AuditRecord, hash_payload, write_audit
 from compliance_agent_platform.guardrails import service as guardrails_service
 from compliance_agent_platform.guardrails.errors import GuardrailViolationError
-from compliance_agent_platform.llm import json_mode_instruction, structured_output
+from compliance_agent_platform.llm import (
+    bedrock_chat_model,
+    json_mode_instruction,
+    structured_output,
+)
 from compliance_agent_platform.schemas.alert import ScreeningAlert
 from compliance_agent_platform.schemas.disposition import (
     DecidedBy,
@@ -242,12 +246,20 @@ def make_evaluate(ctx: NodeContext) -> Node:
             return [("system", system), ("human", prompt)]
 
         backend, model_id, serving_model = ctx.model_backend, ctx.model_id, ctx.model
+        # Deterministic PII floor over the WHOLE prompt (catches an SSN/card anywhere,
+        # incl. the retrieved chunks), before any model is involved - so it also fires
+        # when the primary is down and never triggers a fallback.
+        guardrails_service.check_pii(prompt, rail="input")
+        # The LLM input rail judges only the attacker-influenceable free text: the 8B NIM
+        # model reliably blocks injections in short messages but misses them buried in the
+        # full ~2k-token prompt, and the retrieved corpus chunks are trusted content.
+        rail_text = _untrusted_text(alert, enrichment)
         input_checked = False
         try:
             # The input rail runs on the primary model, so a primary outage can surface
             # here as well as in the invoke below - both are fallback triggers. A real
             # GuardrailViolationError is a verdict about the prompt, never a fallback.
-            guardrails_service.check_input(ctx.model, prompt)
+            guardrails_service.check_input(_input_rail_model(ctx), rail_text)
             input_checked = True
             started = time.monotonic()
             raw_result = primary_structured.invoke(messages_for(ctx.model_backend))
@@ -270,7 +282,7 @@ def make_evaluate(ctx: NodeContext) -> Node:
                 ctx.model_fallback,
             )
             if not input_checked:
-                guardrails_service.check_input(serving_model, prompt)
+                guardrails_service.check_input(serving_model, rail_text)
                 started = time.monotonic()
             raw_result = fallback_structured.invoke(messages_for(backend))
         latency_ms = round((time.monotonic() - started) * 1000)
@@ -456,6 +468,41 @@ def _build_eval_prompt(
         f"{chunks_text}\n\n"
         "Decide the disposition."
     )
+
+
+def _untrusted_text(alert: ScreeningAlert, enrichment: EnrichmentBundle) -> str:
+    """The free text an attacker can influence, joined for the LLM input rail.
+
+    Alert and customer fields come from upstream systems; adverse-media summaries and
+    watchlist aliases/URLs come from external providers. Structured, derived and
+    retrieved-corpus content is excluded.
+    """
+    lines = [f"screened_name: {alert.screened_name}"]
+    for label, value in (
+        ("nationality", alert.nationality),
+        ("address_country", alert.address_country),
+        ("transaction_ref", alert.transaction_ref),
+        ("customer_legal_name", enrichment.customer.legal_name if enrichment.customer else None),
+    ):
+        if value:
+            lines.append(f"{label}: {value}")
+    for candidate in enrichment.candidates:
+        lines.extend(f"alias: {a}" for a in candidate.aliases)
+        if candidate.source_url:
+            lines.append(f"source_url: {candidate.source_url}")
+    lines.extend(f"adverse_media: {m}" for m in enrichment.adverse_media_summaries)
+    return "\n".join(lines)
+
+
+def _input_rail_model(ctx: NodeContext) -> object:
+    """Model judging the input rail: the serving model, or Bedrock when opted in.
+
+    Only NIM-routed calls are redirected; a Bedrock-routed or injected/fake model already
+    is (or stands in for) the model the setting would pick.
+    """
+    if ctx.settings.guardrail_input_backend == "bedrock" and ctx.model_backend == "nim":
+        return bedrock_chat_model()
+    return ctx.model
 
 
 def _fallback_evidence(state: ScreeningState) -> list[EvidenceItem]:

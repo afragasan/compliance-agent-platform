@@ -144,6 +144,11 @@ def _bedrock_chat_model():
     )
 
 
+def bedrock_chat_model():
+    """The shared Bedrock chat model, for callers that must pick it regardless of routing."""
+    return _bedrock_chat_model()
+
+
 class _NimChatOpenAI(ChatOpenAI):
     """``ChatOpenAI`` that sends the legacy ``max_tokens`` field NIM's server accepts.
 

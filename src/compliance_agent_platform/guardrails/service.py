@@ -1,11 +1,14 @@
 """Input (PII/jailbreak) and output (topic boundary) self-check rails around
 `evaluate`'s LLM calls, via the real `nemoguardrails` library.
 
-The self-check rail always runs on the *same resolved backend model* as the call it's
-guarding (passed in by the caller, e.g. ``ctx.model``/``ctx.model_fallback`` in
-``graph/nodes.py::make_evaluate``) - a NIM-routed call's guardrail check also goes to
-NIM, a Bedrock-routed call's check also goes to Bedrock - so a PII-bearing prompt never
-takes a third, unreviewed path.
+Both rails first run a deterministic SSN / card-number check (``check_pii``), then the
+LLM self-check. By default the self-check runs on the *same resolved backend model* as the
+call it's guarding (passed in by the caller, e.g. ``ctx.model``/``ctx.model_fallback`` in
+``graph/nodes.py::make_evaluate``) - a NIM-routed call's check also goes to NIM, a
+Bedrock-routed call's check also goes to Bedrock - so a PII-bearing prompt never takes a
+third, unreviewed path. ``Settings.guardrail_input_backend="bedrock"`` is the opt-in
+exception: the input rail then always runs on Bedrock (stricter, but an extra Bedrock call
+per NIM-routed alert; see that setting).
 
 Setting ``CAP_FAKE_GUARDRAILS`` short-circuits to a deterministic heuristic (block iff
 the text contains the literal marker ``__BLOCK__``), the same offline-toggle pattern as
@@ -21,6 +24,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from compliance_agent_platform.guardrails.errors import GuardrailViolationError
+from compliance_agent_platform.guardrails.patterns import find_pii
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +55,20 @@ def check_output(model: object, text: str) -> GuardrailResult:
     return _check(model, text, rail="output")
 
 
+def check_pii(text: str, *, rail: str) -> None:
+    """Deterministic SSN / card-number check; raises on a hit. No model, no network.
+
+    The backend-independent floor under the LLM rails: it fires even when NIM is down and
+    does not depend on how well the serving model reads a long prompt. The reason names
+    the category only, never the matched value.
+    """
+    found = find_pii(text)
+    if found:
+        raise GuardrailViolationError(rail=rail, reason=f"contains {', '.join(found)}")
+
+
 def _check(model: object, text: str, *, rail: str) -> GuardrailResult:
+    check_pii(text, rail=rail)
     # CAP_FAKE_MODEL implies fake guardrails too: it hands `evaluate` a plain
     # `_FakeChatModel`, not a real LangChain chat model, and nemoguardrails can only
     # wrap the latter - there is no real backend here for a self-check rail to run on.
