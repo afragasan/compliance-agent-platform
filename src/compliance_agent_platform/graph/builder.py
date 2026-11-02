@@ -21,7 +21,7 @@ from compliance_agent_platform.graph.nodes import (
     make_retrieve,
 )
 from compliance_agent_platform.graph.routing import make_route_after_evaluate
-from compliance_agent_platform.llm import get_chat_model
+from compliance_agent_platform.llm import resolve_chat_model
 from compliance_agent_platform.rag.base import VectorStore
 from compliance_agent_platform.rag.factory import get_vector_store
 from compliance_agent_platform.schemas.state import ScreeningState
@@ -35,6 +35,15 @@ class NodeContext:
     model: object  # LangChain chat model (BaseChatModel)
     embedder: object  # LangChain embeddings model
     vector_store: VectorStore
+    # Which backend/model actually serves `model` - resolved once at build time from
+    # the routing policy (llm.resolve_chat_model), so audit rows can name the truth
+    # instead of assuming Bedrock. "test"/"test-model-id" when `model=` is injected
+    # directly (tests bypass routing entirely).
+    model_backend: str = "test"
+    model_id: str = "test-model-id"
+    model_fallback: object | None = None
+    fallback_backend: str | None = None
+    fallback_model_id: str | None = None
 
 
 def build_graph(
@@ -50,13 +59,29 @@ def build_graph(
     """Return the compiled graph. ``model``/``embedder``/``vector_store`` are
     injectable for tests."""
     settings = settings or get_settings()
+
+    if model is not None:
+        resolved_model, backend, model_id = model, "test", "test-model-id"
+        fallback_model = fallback_backend = fallback_model_id = None
+    else:
+        primary, fallback = resolve_chat_model(settings.queue)
+        resolved_model, backend, model_id = primary.model, primary.backend, primary.model_id
+        fallback_model = fallback.model if fallback else None
+        fallback_backend = fallback.backend if fallback else None
+        fallback_model_id = fallback.model_id if fallback else None
+
     ctx = NodeContext(
         deps=deps,
         audit_conn=audit_conn,
         settings=settings,
-        model=model or get_chat_model(),
+        model=resolved_model,
         embedder=embedder or get_embedding_model(),
         vector_store=vector_store or get_vector_store(settings, conn=audit_conn),
+        model_backend=backend,
+        model_id=model_id,
+        model_fallback=fallback_model,
+        fallback_backend=fallback_backend,
+        fallback_model_id=fallback_model_id,
     )
 
     builder = StateGraph(ScreeningState)

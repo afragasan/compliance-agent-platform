@@ -1,4 +1,4 @@
-"""End-to-end persistence + crash-recovery against the dev RDS ``cap_test`` database.
+"""End-to-end persistence + crash-recovery against the integration test database.
 
 Each ``invoke()`` call opens and closes its own ``open_checkpointer`` context, so calling
 it twice for the same ``thread_id`` *is* the crash/restart scenario: the second call

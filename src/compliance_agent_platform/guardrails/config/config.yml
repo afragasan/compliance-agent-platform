@@ -1,0 +1,14 @@
+# NeMo Guardrails config for the `evaluate` node's input/output self-check rails.
+# No `models:` entry: the main LLM is always injected at runtime via
+# `LLMRails(config, llm=...)` (the same resolved NIM/Bedrock backend serving the
+# call being guarded - see guardrails/service.py), never constructed from this file.
+rails:
+  input:
+    flows:
+      - self check input
+  output:
+    flows:
+      - self check output
+  dialog:
+    single_call:
+      enabled: False

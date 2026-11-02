@@ -150,26 +150,31 @@ project — run it on demand or wire it into a cron job / scheduled task per you
 environment. It is idempotent and resumable: running it with nothing new to export
 is a no-op (`row_count: 0`).
 
-### `cap_test` is shared with the automated test suite
+### The test suite no longer shares a database with `cap run`
 
-`pytest`'s `clean_db` fixture `TRUNCATE`s `screening_audit` before every integration
-test — so running `pytest` between two `cap audit export` runs against the same
-`DATABASE_URL` deletes rows a manifest already claims were exported. The next
-export correctly refuses rather than silently accepting the gap:
+`pytest`'s `clean_db` fixture `TRUNCATE`s `screening_audit` and the checkpoint tables
+before every integration test. Historically the suite ran against the same `cap_test`
+database as `cap run`, so a `pytest` run between two `cap audit export` runs deleted rows a
+manifest already claimed were exported, and the next export (correctly) refused:
 
 ```
 RuntimeError: refusing to export: chain continuity broken at row ...
 ```
 
-This is the hash chain doing its job (catching a real deletion), not a bug — but on
-a dev database it's an easy trap to fall into. If you hit it: either (a) don't
-interleave `pytest -m integration` runs with `cap audit export` demos against the
-same database, or (b) if the table has already been truncated since your last
-export, point `AUDIT_EXPORT_PREFIX` at a new value so the exporter starts a fresh
-chain matching the table's current state. The old prefix's objects stay in the
-bucket untouched either way — Object Lock won't let anything delete them before
-`AUDIT_RETENTION_DAYS` expires — they just stop receiving new exports, which is
-itself an honest record that the chain there ended.
+The same trap also destroyed real validation evidence (the Week 4 Stage C-E audit rows).
+It is now closed at the source: integration tests run only against `TEST_DATABASE_URL`
+(`docker compose up -d postgres_test`, port 5433, database `cap_it`, in-memory storage),
+are skipped when it is unset, and the whole run aborts if it names the same host, port and
+database as `DATABASE_URL` / `DB_SECRET_ARN`. During an integration test the application's
+own settings are redirected to the test database as well. `cap_test` is no longer touched
+by `pytest`.
+
+If an old `cap_test` was truncated underneath an existing export, point
+`AUDIT_EXPORT_PREFIX` at a new value so the exporter starts a fresh chain matching the
+table's current state. The old prefix's objects stay in the bucket untouched either way -
+Object Lock won't let anything delete them before `AUDIT_RETENTION_DAYS` expires - they
+just stop receiving new exports, which is itself an honest record that the chain there
+ended.
 
 ## 2. CloudTrail: log file integrity validation
 
@@ -273,11 +278,12 @@ produced results identical to the FAISS backend (see ADR-003 and
 `docs/week3-validation-runbook.md` for the actual numbers). Not every RDS instance
 is guaranteed to have it pre-enabled — run the query above first.
 
-### `document_chunks` is NOT part of the `cap_test` truncation trap
+### `document_chunks` is reference data
 
 Unlike `screening_audit`/the checkpoint tables, `document_chunks` is reference data
 (the ingested regulatory corpus), not a per-alert transactional record —
-`tests/conftest.py`'s `clean_db` fixture deliberately does **not** truncate it.
+`tests/conftest.py`'s `clean_db` fixture deliberately does **not** truncate it (the
+pgvector store tests do, which is now harmless because they run on the test database).
 Re-ingesting is always safe and idempotent (`chunk_id` is the upsert key), so there
 is no equivalent of the audit-export prefix-bump dance for this table; see
 `rag/schema.sql`'s header comment and ADR-003's Consequences for the full rationale.

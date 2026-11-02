@@ -66,6 +66,57 @@ class Settings(BaseSettings):
     retrieval_top_k: int = Field(default=5)
     regulatory_corpus_dir: str = Field(default="docs/regulatory-corpus")
 
+    # --- Inference routing (NIM / Bedrock) -------------------------------------
+    llm_routing_policy: dict[str, Literal["nim", "bedrock"]] = Field(
+        default_factory=lambda: {"sanctions_screening": "nim", "aml_analysis": "bedrock"},
+        description=(
+            "Queue -> backend. Latency-sensitive sanctions screening runs on the "
+            "self-hosted NIM pod; reasoning-intensive AML analysis runs on Bedrock. "
+            "Overridable via the LLM_ROUTING_POLICY env var as a JSON object."
+        ),
+    )
+    bedrock_fallback_enabled: bool = Field(
+        default=True,
+        description="If the 'nim' backend's call fails, retry once against Bedrock.",
+    )
+    nim_base_url: str = Field(
+        default="http://localhost:8000/v1",
+        description=(
+            "OpenAI-compatible base URL for the self-hosted NIM pod. Defaults to a "
+            "local port-forward target; see docs/aws-compliance-setup.md for reaching "
+            "the real nim-dev EKS cluster."
+        ),
+    )
+    nim_model_id: str = Field(default="meta/llama-3.1-8b-instruct")
+    nim_api_key: str = Field(
+        default="not-needed",
+        description="NIM ignores this, but the OpenAI client requires a non-empty string.",
+    )
+    bedrock_input_price_per_1k: float = Field(
+        default=0.003, description="USD per 1K input tokens, for cost projection."
+    )
+    bedrock_output_price_per_1k: float = Field(
+        default=0.015, description="USD per 1K output tokens, for cost projection."
+    )
+    nim_gpu_hourly_rate: float = Field(
+        default=1.624,
+        description="On-demand g5.4xlarge USD/hour (us-east-1), amortized over NIM call latency.",
+    )
+    guardrail_input_backend: Literal["serving", "bedrock"] = Field(
+        default="serving",
+        description=(
+            "Which model judges the input rail. 'serving' = the model answering the call "
+            "(NIM for NIM-routed queues). 'bedrock' = always Bedrock Claude, which is "
+            "stricter than the 8B NIM model but adds a Bedrock call and sends the "
+            "untrusted alert text to Bedrock on every NIM-routed run."
+        ),
+    )
+    bedrock_guardrail_id: str | None = Field(
+        default=None,
+        description="Bedrock Guardrails second-layer defense on the Bedrock path; unset=disabled.",
+    )
+    bedrock_guardrail_version: str = Field(default="DRAFT")
+
     def resolved_dsn(self) -> str:
         """Return the effective libpq DSN, pulling creds from Secrets Manager if configured."""
         if not self.db_secret_arn:

@@ -35,11 +35,11 @@ class _FakeModel:
     def __init__(self, result: EvaluationResult) -> None:
         self._result = result
 
-    def with_structured_output(self, schema):
+    def with_structured_output(self, schema, **kwargs):
         return self
 
-    def invoke(self, messages):
-        return self._result
+    def invoke(self, messages, **kwargs):
+        return {"raw": None, "parsed": self._result, "parsing_error": None}
 
 
 def _graph(result: EvaluationResult, saver: InMemorySaver | None = None):
@@ -189,14 +189,15 @@ def test_retrieve_runs_before_evaluate_and_prompt_carries_chunk_markers():
     captured_messages = {}
 
     class _CapturingModel:
-        def with_structured_output(self, schema):
+        def with_structured_output(self, schema, **kwargs):
             return self
 
-        def invoke(self, messages):
+        def invoke(self, messages, **kwargs):
             captured_messages["messages"] = messages
-            return EvaluationResult(
+            parsed = EvaluationResult(
                 recommended=DispositionType.CLEAR, confidence=0.95, rationale="no match"
             )
+            return {"raw": None, "parsed": parsed, "parsing_error": None}
 
     graph = build_graph(
         checkpointer=InMemorySaver(),

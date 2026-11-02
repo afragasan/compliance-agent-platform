@@ -8,12 +8,21 @@ need at entry and dump them back on exit.
 
 from __future__ import annotations
 
+import logging
+import time
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from langgraph.types import interrupt
 
 from compliance_agent_platform.audit.log import AuditRecord, hash_payload, write_audit
+from compliance_agent_platform.guardrails import service as guardrails_service
+from compliance_agent_platform.guardrails.errors import GuardrailViolationError
+from compliance_agent_platform.llm import (
+    bedrock_chat_model,
+    json_mode_instruction,
+    structured_output,
+)
 from compliance_agent_platform.schemas.alert import ScreeningAlert
 from compliance_agent_platform.schemas.disposition import (
     DecidedBy,
@@ -34,6 +43,8 @@ if TYPE_CHECKING:
     from compliance_agent_platform.graph.builder import NodeContext
 
 Node = Callable[[ScreeningState], dict]
+
+logger = logging.getLogger(__name__)
 
 _EVAL_SYSTEM = (
     "You are a sanctions-screening analyst assistant. Given an alert and enrichment "
@@ -191,7 +202,12 @@ def make_retrieve(ctx: NodeContext) -> Node:
 
 
 def make_evaluate(ctx: NodeContext) -> Node:
-    structured = ctx.model.with_structured_output(EvaluationResult)
+    primary_structured = structured_output(ctx.model, ctx.model_backend, EvaluationResult)
+    fallback_structured = (
+        structured_output(ctx.model_fallback, ctx.fallback_backend, EvaluationResult)
+        if ctx.model_fallback is not None
+        else None
+    )
 
     def evaluate(state: ScreeningState) -> dict:
         alert = ScreeningAlert.model_validate(state["alert"])
@@ -216,7 +232,7 @@ def make_evaluate(ctx: NodeContext) -> Node:
                     payload_hash=hash_payload(
                         {"alert": state["alert"], "enrichment": state["enrichment"]}
                     ),
-                    model_id=ctx.settings.bedrock_model_id,
+                    model_id=ctx.model_id,
                     prompt_version=ctx.settings.prompt_version,
                     detail={"rule_overlay": "insufficient_data"},
                 ),
@@ -224,8 +240,56 @@ def make_evaluate(ctx: NodeContext) -> Node:
             return {"evaluation": result.model_dump(mode="json")}
 
         prompt = _build_eval_prompt(alert, enrichment, retrieval)
-        messages = [("system", _EVAL_SYSTEM), ("human", prompt)]
-        result: EvaluationResult = structured.invoke(messages)
+
+        def messages_for(backend: str) -> list[tuple[str, str]]:
+            system = _EVAL_SYSTEM + json_mode_instruction(backend, EvaluationResult)
+            return [("system", system), ("human", prompt)]
+
+        backend, model_id, serving_model = ctx.model_backend, ctx.model_id, ctx.model
+        # Deterministic PII floor over the WHOLE prompt (catches an SSN/card anywhere,
+        # incl. the retrieved chunks), before any model is involved - so it also fires
+        # when the primary is down and never triggers a fallback.
+        guardrails_service.check_pii(prompt, rail="input")
+        # The LLM input rail judges only the attacker-influenceable free text: the 8B NIM
+        # model reliably blocks injections in short messages but misses them buried in the
+        # full ~2k-token prompt, and the retrieved corpus chunks are trusted content.
+        rail_text = _untrusted_text(alert, enrichment)
+        input_checked = False
+        try:
+            # The input rail runs on the primary model, so a primary outage can surface
+            # here as well as in the invoke below - both are fallback triggers. A real
+            # GuardrailViolationError is a verdict about the prompt, never a fallback.
+            guardrails_service.check_input(_input_rail_model(ctx), rail_text)
+            input_checked = True
+            started = time.monotonic()
+            raw_result = primary_structured.invoke(messages_for(ctx.model_backend))
+        except GuardrailViolationError:
+            raise
+        except Exception as exc:
+            if fallback_structured is None:
+                raise
+            logger.warning(
+                "evaluate: primary backend %s (%s) failed (%s); falling back to %s (%s)",
+                ctx.model_backend,
+                ctx.model_id,
+                exc,
+                ctx.fallback_backend,
+                ctx.fallback_model_id,
+            )
+            backend, model_id, serving_model = (
+                ctx.fallback_backend,
+                ctx.fallback_model_id,
+                ctx.model_fallback,
+            )
+            if not input_checked:
+                guardrails_service.check_input(serving_model, rail_text)
+                started = time.monotonic()
+            raw_result = fallback_structured.invoke(messages_for(backend))
+        latency_ms = round((time.monotonic() - started) * 1000)
+
+        result: EvaluationResult = raw_result["parsed"]
+        usage = getattr(raw_result["raw"], "usage_metadata", None) or {}
+        guardrails_service.check_output(serving_model, result.rationale)
 
         _audit(
             ctx,
@@ -240,11 +304,25 @@ def make_evaluate(ctx: NodeContext) -> Node:
                 ),
                 llm_request={"system": _EVAL_SYSTEM, "human": prompt},
                 llm_response=result.model_dump(mode="json"),
-                model_id=ctx.settings.bedrock_model_id,
+                model_id=model_id,
                 prompt_version=ctx.settings.prompt_version,
+                detail={
+                    "queue": ctx.settings.queue,
+                    "backend": backend,
+                    "fallback_used": backend != ctx.model_backend,
+                    "input_tokens": usage.get("input_tokens"),
+                    "output_tokens": usage.get("output_tokens"),
+                    "total_tokens": usage.get("total_tokens"),
+                    "latency_ms": latency_ms,
+                },
             ),
         )
-        return {"evaluation": result.model_dump(mode="json")}
+        return {
+            "evaluation": result.model_dump(mode="json"),
+            # The model that actually answered (differs from the routed primary after a
+            # fallback) - dispose stamps this on the Disposition instead of ctx.model_id.
+            "evaluation_model": {"backend": backend, "model_id": model_id},
+        }
 
     return evaluate
 
@@ -333,7 +411,7 @@ def make_dispose(ctx: NodeContext) -> Node:
                 matched_entities=evaluation.matched_entities,
                 evidence=evaluation.evidence or _fallback_evidence(state),
                 decided_by=DecidedBy.AGENT,
-                model_id=ctx.settings.bedrock_model_id,
+                model_id=(state.get("evaluation_model") or {}).get("model_id", ctx.model_id),
                 prompt_version=ctx.settings.prompt_version,
             )
 
@@ -390,6 +468,41 @@ def _build_eval_prompt(
         f"{chunks_text}\n\n"
         "Decide the disposition."
     )
+
+
+def _untrusted_text(alert: ScreeningAlert, enrichment: EnrichmentBundle) -> str:
+    """The free text an attacker can influence, joined for the LLM input rail.
+
+    Alert and customer fields come from upstream systems; adverse-media summaries and
+    watchlist aliases/URLs come from external providers. Structured, derived and
+    retrieved-corpus content is excluded.
+    """
+    lines = [f"screened_name: {alert.screened_name}"]
+    for label, value in (
+        ("nationality", alert.nationality),
+        ("address_country", alert.address_country),
+        ("transaction_ref", alert.transaction_ref),
+        ("customer_legal_name", enrichment.customer.legal_name if enrichment.customer else None),
+    ):
+        if value:
+            lines.append(f"{label}: {value}")
+    for candidate in enrichment.candidates:
+        lines.extend(f"alias: {a}" for a in candidate.aliases)
+        if candidate.source_url:
+            lines.append(f"source_url: {candidate.source_url}")
+    lines.extend(f"adverse_media: {m}" for m in enrichment.adverse_media_summaries)
+    return "\n".join(lines)
+
+
+def _input_rail_model(ctx: NodeContext) -> object:
+    """Model judging the input rail: the serving model, or Bedrock when opted in.
+
+    Only NIM-routed calls are redirected; a Bedrock-routed or injected/fake model already
+    is (or stands in for) the model the setting would pick.
+    """
+    if ctx.settings.guardrail_input_backend == "bedrock" and ctx.model_backend == "nim":
+        return bedrock_chat_model()
+    return ctx.model
 
 
 def _fallback_evidence(state: ScreeningState) -> list[EvidenceItem]:

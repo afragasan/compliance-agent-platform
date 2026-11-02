@@ -20,6 +20,7 @@ class ScreeningState(TypedDict, total=False):
     enrichment: dict
     retrieval: dict
     evaluation: dict
+    evaluation_model: dict  # {backend, model_id} that actually served evaluate
     analyst_decision: dict
     disposition: dict
     errors: Annotated[list[str], _extend]

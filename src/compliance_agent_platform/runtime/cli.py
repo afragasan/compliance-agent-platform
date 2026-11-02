@@ -9,6 +9,7 @@
     cap rag ingest           # chunk + embed the regulatory corpus into the vector store
     cap rag search           # ad-hoc retrieval, for manual sanity-checking
     cap retrieval-eval       # precision@k / recall@k over labeled query->chunk pairs
+    cap cost report          # tokens/cost per queue+model, projected forward
 """
 
 from __future__ import annotations
@@ -170,6 +171,38 @@ def _cmd_retrieval_eval(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_cost_report(args: argparse.Namespace) -> int:
+    from datetime import datetime, timezone
+
+    import psycopg
+
+    from compliance_agent_platform.config import get_settings
+    from compliance_agent_platform.cost import build_cost_report
+
+    settings = get_settings()
+    since = datetime.fromisoformat(args.since).astimezone(timezone.utc) if args.since else None
+    with psycopg.connect(settings.resolved_dsn(), autocommit=True) as conn:
+        report = build_cost_report(
+            conn,
+            settings,
+            since=since,
+            project_days=args.project_days,
+            queue=args.queue,
+            backend=args.backend,
+        )
+    _print(
+        {
+            "since": report.since,
+            "observed_window_days": report.observed_window_days,
+            "project_days": report.project_days,
+            "observed_cost_usd": report.observed_cost_usd,
+            "projected_cost_usd": report.projected_cost_usd,
+            "rows": [vars(r) for r in report.rows],
+        }
+    )
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="cap", description="Sanctions-screening agent runner")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -223,6 +256,20 @@ def main(argv: list[str] | None = None) -> int:
     retrieval_eval.add_argument("--backend", choices=["faiss", "pgvector"], default=None)
     retrieval_eval.add_argument("--verbose", action="store_true", help="Include per-query rows")
     retrieval_eval.set_defaults(func=_cmd_retrieval_eval)
+
+    cost = sub.add_parser("cost", help="Inference token/cost tracking")
+    cost_sub = cost.add_subparsers(dest="cost_command", required=True)
+
+    cost_report = cost_sub.add_parser(
+        "report", help="Tokens/cost per queue+model, observed and projected forward"
+    )
+    cost_report.add_argument(
+        "--since", default=None, help="ISO date/time; default: earliest matching row"
+    )
+    cost_report.add_argument("--project-days", type=int, default=30, dest="project_days")
+    cost_report.add_argument("--queue", default=None)
+    cost_report.add_argument("--backend", choices=["nim", "bedrock", "fake"], default=None)
+    cost_report.set_defaults(func=_cmd_cost_report)
 
     args = parser.parse_args(argv)
     return args.func(args)
