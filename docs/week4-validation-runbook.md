@@ -175,9 +175,13 @@ uv run ruff check src tests && uv run ruff format --check src tests   # clean
 uv run pytest -m "not integration" -q   # 145 passed, 11 skipped, 16 deselected
 ```
 
-The integration suite (`uv run pytest -m integration`) was last run mid-validation,
-passing (161 total at that point); it was **not** re-run after Stage F because it wipes
-the shared audit table.
+The integration suite was last run mid-validation against the shared database (the run
+that wiped the audit rows). After the isolation fix it runs on its own database:
+
+```bash
+docker compose up -d postgres_test
+TEST_DATABASE_URL=postgresql://cap:cap@localhost:5433/cap_it uv run pytest -q   # 171 passed, 11 skipped
+```
 
 ---
 
@@ -214,9 +218,12 @@ the shared audit table.
 - **Output rail** still receives the whole rationale; scoping it is listed in ADR-004.
 
 **Tooling and docs**
-- **The integration suite wipes the shared `cap_test` audit table**, which `cap run`
-  also writes to. It destroyed Stage C-E audit evidence during this run. Give the suite
-  its own database/schema or stop truncating `screening_audit` when the DSN is shared.
+- **Integration suite isolation (resolved after this run).** The suite used to wipe the
+  shared `cap_test` audit table that `cap run` also writes to, which destroyed Stage C-E
+  evidence. Integration tests now require their own `TEST_DATABASE_URL`
+  (`docker compose up -d postgres_test`) and abort if it names the application's database;
+  verified with the full suite (171 passed, 11 skipped) leaving `cap_test` byte-for-byte
+  unchanged (66 audit rows, max id 2070, before and after).
 - `docs/aws-compliance-setup.md` still has no EKS/NIM section (`config.py` points to it);
   `.env.example` lacks `NIM_BASE_URL`, `NIM_MODEL_ID`, `NIM_API_KEY`,
   `LLM_ROUTING_POLICY`, `BEDROCK_FALLBACK_ENABLED`, `NIM_GPU_HOURLY_RATE`,

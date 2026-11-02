@@ -19,7 +19,7 @@ def test_clean_db_leaves_empty_screening_tables(clean_db: str):
 
 def test_audit_schema_and_immutability_trigger_present(clean_db: str):
     # Insert through write_audit (not raw SQL) so the row this test leaves behind
-    # in the shared cap_test database is properly hash-chained like every other
+    # in the integration test database is properly hash-chained like every other
     # row `cap` writes - an unchained row here previously tripped up
     # `cap audit export`/`verify` on a freshly test-truncated table (it isn't
     # tampering, just a row that predates the chain, but export correctly

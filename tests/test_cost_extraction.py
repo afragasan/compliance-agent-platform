@@ -1,6 +1,6 @@
 """Cost tracking: pure pricing math (no DB), the evaluate node's audit-detail token
 extraction (no DB), and the real SQL aggregation/grouping in `build_cost_report`
-(`@pytest.mark.integration`, against the real `cap_test` audit schema)."""
+(`@pytest.mark.integration`, against the real audit schema in the integration test database)."""
 
 from __future__ import annotations
 

@@ -1,8 +1,12 @@
 """Shared fixtures.
 
-Integration tests are marked ``@pytest.mark.integration`` and need a live PostgreSQL
-(the dev RDS ``cap_test`` database). They are skipped automatically when ``DATABASE_URL``
-is not resolvable, so ``pytest`` with no database still runs the full unit suite.
+Integration tests are marked ``@pytest.mark.integration`` and need their OWN PostgreSQL,
+named by ``TEST_DATABASE_URL`` (``docker compose up -d postgres_test`` gives one at
+``postgresql://cap:cap@localhost:5433/cap_it``). They are skipped when it is unset, and
+the run is aborted if it names the same database as ``DATABASE_URL`` - the suite
+TRUNCATEs the audit and checkpoint tables, and once destroyed real ``cap run`` evidence
+in the shared dev database. During an integration test the app's own settings are
+pointed at the test database too, so ``invoke()`` never touches the dev database.
 """
 
 from __future__ import annotations
@@ -13,6 +17,7 @@ from pathlib import Path
 
 import psycopg
 import pytest
+from dbisolation import same_database
 from dotenv import load_dotenv
 
 # Make .env values (DATABASE_URL, AWS_REGION, ...) visible to os.environ for the test run,
@@ -33,41 +38,51 @@ _EXAMPLES = Path(__file__).resolve().parent.parent / "examples"
 _DATA_TABLES = ("checkpoints", "checkpoint_blobs", "checkpoint_writes", "screening_audit")
 
 
-def _resolved_dsn() -> str | None:
-    """The integration DSN, or None if the environment has not configured one.
+def _test_dsn() -> str | None:
+    """The integration suite's DSN: ``TEST_DATABASE_URL`` only, never ``DATABASE_URL``."""
+    return os.environ.get("TEST_DATABASE_URL") or None
 
-    Only an explicit ``DATABASE_URL`` (typically from ``.env``) or a ``DB_SECRET_ARN``
-    counts — never the app's built-in localhost default, so a machine with neither
-    skips the integration tests rather than trying to reach a phantom local server.
-    """
-    dsn = os.environ.get("DATABASE_URL")
-    if dsn:
-        return dsn
+
+def _app_dsns() -> list[str]:
+    """DSNs the application itself would use, which the suite must never share."""
+    dsns = [os.environ["DATABASE_URL"]] if os.environ.get("DATABASE_URL") else []
     if os.environ.get("DB_SECRET_ARN"):
         try:
             from compliance_agent_platform.config import get_settings
 
-            return get_settings().resolved_dsn()
-        except Exception:
-            return None
-    return None
+            dsns.append(get_settings().resolved_dsn())
+        except Exception:  # noqa: BLE001 - can't resolve the secret: the DATABASE_URL check stands
+            pass
+    return dsns
 
 
 def pytest_collection_modifyitems(config, items):
-    """Skip every `integration` test when no database is configured."""
-    if _resolved_dsn():
+    """Skip integration tests without a test DB; abort if it is the application's DB."""
+    integration = [item for item in items if "integration" in item.keywords]
+    if not integration:
         return
-    skip = pytest.mark.skip(reason="no DATABASE_URL / DB_SECRET_ARN configured")
-    for item in items:
-        if "integration" in item.keywords:
+    dsn = _test_dsn()
+    if not dsn:
+        skip = pytest.mark.skip(
+            reason="no TEST_DATABASE_URL (docker compose up -d postgres_test; see .env.example)"
+        )
+        for item in integration:
             item.add_marker(skip)
+        return
+    for app_dsn in _app_dsns():
+        if same_database(dsn, app_dsn):
+            raise pytest.UsageError(
+                "TEST_DATABASE_URL points at the same database as the application "
+                "(DATABASE_URL / DB_SECRET_ARN). The integration suite TRUNCATEs audit and "
+                "checkpoint tables; refusing to run. Use a dedicated test database."
+            )
 
 
 @pytest.fixture(scope="session")
 def pg_dsn() -> str:
-    dsn = _resolved_dsn()
+    dsn = _test_dsn()
     if not dsn:
-        pytest.skip("no DATABASE_URL / DB_SECRET_ARN configured")
+        pytest.skip("no TEST_DATABASE_URL configured")
     return dsn
 
 
@@ -80,6 +95,27 @@ def _schema_ready(pg_dsn: str) -> str:
     with open_checkpointer(Settings(database_url=pg_dsn)):
         pass
     return pg_dsn
+
+
+@pytest.fixture(autouse=True)
+def _app_uses_test_db(request):
+    """Point the application's settings at the test database for integration tests.
+
+    ``invoke()`` and friends build ``Settings`` from the environment, so without this they
+    would read/write the dev ``DATABASE_URL`` while ``clean_db`` truncated the test DB.
+    """
+    if "integration" not in request.keywords:
+        yield
+        return
+    from compliance_agent_platform.config import get_settings
+
+    request.addfinalizer(get_settings.cache_clear)  # runs after monkeypatch restores env
+    dsn = request.getfixturevalue("pg_dsn")
+    monkeypatch = request.getfixturevalue("monkeypatch")
+    monkeypatch.setenv("DATABASE_URL", dsn)
+    monkeypatch.setenv("DB_SECRET_ARN", "")  # blank beats a value in .env
+    get_settings.cache_clear()
+    yield
 
 
 @pytest.fixture

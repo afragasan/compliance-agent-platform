@@ -1,4 +1,4 @@
-"""The AgentCore-shaped entrypoint contract, exercised against ``cap_test``."""
+"""The AgentCore-shaped entrypoint contract, exercised against the integration test database."""
 
 from __future__ import annotations
 
