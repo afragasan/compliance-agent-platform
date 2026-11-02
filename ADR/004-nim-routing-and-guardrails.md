@@ -72,5 +72,22 @@ reasoning-intensive and goes straight to Bedrock. Validating this against a real
   validation), tested for false positives against transaction refs and entry ids before
   being enabled. Until then, a NIM-routed alert with such a number in a free-text field
   is protected only by the probabilistic rail.
+- **Output-rail false positive on legitimate rationales.** The output self-check rail
+  (`guardrails/config/prompts.yml`, `self_check_output`) treats regulatory next steps as
+  "action outside deciding this disposition". A grounded `true_match` rationale that ends
+  "the institution must block the property and file a Blocking Report within 10 business
+  days" (as `ALRT-MATCH-001` on `aml_analysis` produced) was blocked on three runs and
+  allowed on a fourth; the same text was allowed 3/3 in isolation on both Claude and the 8B
+  model, and the final sentence alone was blocked 3/3. A block fails the run after the model
+  call, with no fallback. Needs: a prompt that permits citing regulatory obligations that
+  appear in the retrieved guidance, a retry/triage policy for a blocked rationale (rather
+  than failing the alert), and capture of the blocked text for review. The exact rationale
+  that was blocked in the live runs was not captured.
+- **Calls blocked by the output rail are missing from cost reporting.** `evaluate` writes
+  its audit row (tokens, latency, backend) only after the output rail passes, so a blocked
+  call's usage is never recorded and `cap cost report` under-counts it (about $0.02 per
+  blocked Bedrock call; three such calls were absent from the Week 4 sample). The usage
+  should be audited when the model call returns, before the output rail, with the rail
+  verdict recorded alongside, so cost reflects what was actually billed.
 - **Output-rail scoping.** The output rail still receives the whole rationale; apply
   the same measure-first approach if the 8B model proves weak there.
